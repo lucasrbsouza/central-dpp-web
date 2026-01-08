@@ -1,0 +1,4 @@
+ok, agora vamos alguns detalhes a mais, desde o começo do desenvolvimento
+quero que voce ja diferencie o que vai aparecer na tela tanto pra quem é admin e gestor, tanto pra quem é usuario normal
+e o nome do projeto não é sistema dpp, é central dpp.
+vamos começar fazendo o Login
