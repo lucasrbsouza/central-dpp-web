@@ -117,4 +117,25 @@ export const formatarBytes = (bytes: number, decimais = 2): string => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + tamanhos[i];
+
+};
+
+/**
+ * Gera as iniciais do nome (ex: "João Silva" -> "JS")
+ * Útil para avatares quando não há foto.
+ */
+export const getIniciais = (nome: string, sobrenome: string = ''): string => {
+  if (!nome) return '??';
+  const n = nome.trim().charAt(0);
+  const s = sobrenome ? sobrenome.trim().charAt(0) : '';
+  return (n + s).toUpperCase();
+};
+
+/**
+ * Alias para formatarDataSimples, usado para exibir datas de nascimento/admissão
+ * Ex: "1990-12-25" -> "25/12/1990"
+ */
+export const formatarData = (dataString: string | undefined): string => {
+  if (!dataString) return '--/--/----';
+  return formatarDataSimples(dataString);
 };
