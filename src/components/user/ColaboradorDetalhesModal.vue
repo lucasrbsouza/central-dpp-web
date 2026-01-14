@@ -41,6 +41,14 @@
 
         <div class="space-y-3 pt-2">
           <div class="flex items-center gap-3 text-sm">
+            <span class="w-6 text-center text-xl">📧</span>
+            <span v-if="colaborador.email" class="text-gray-700 font-medium truncate" :title="colaborador.email">
+              {{ colaborador.email }}
+            </span>
+            <span v-else class="text-gray-400 italic">Email não disponível</span>
+          </div>
+
+          <div class="flex items-center gap-3 text-sm">
             <span class="w-6 text-center text-xl">📞</span>
             <span v-if="colaborador.telefone" class="text-gray-700 font-medium">{{ colaborador.telefone }}</span>
             <span v-else class="text-gray-400 italic">Telefone não informado</span>
@@ -80,7 +88,6 @@ const props = defineProps<{
 const emit = defineEmits(['close']);
 const fotoUrl = ref<string | null>(null);
 
-// Busca a foto sempre que o colaborador mudar ou ao montar
 const fetchFoto = async () => {
   if (fotoUrl.value) URL.revokeObjectURL(fotoUrl.value);
   fotoUrl.value = null;
@@ -89,7 +96,7 @@ const fetchFoto = async () => {
     const response = await api.get(`/colaboradores/${props.colaborador.id}/foto`, { responseType: 'blob' });
     fotoUrl.value = URL.createObjectURL(response.data);
   } catch (e) {
-    // Foto não encontrada, mantemos null para mostrar iniciais
+    // Foto não encontrada
   }
 };
 

@@ -185,6 +185,12 @@ const adminRoutes = {
             name: 'AdminColaboradorEditar',
             component: () => import('../views/admin/colaboradores/ColaboradorFormView.vue')
         },
+        {
+            path: 'configuracoes',
+            name: 'admin-config',
+            component: () => import('../views/admin/config/ConfiguracoesView.vue'),
+            meta: { title: 'Cadastros Auxiliares' }
+        },
     ]
 };
 

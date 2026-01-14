@@ -16,7 +16,7 @@
           placeholder="Buscar por nome, matrícula ou cargo..." 
           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none"
         >
-        <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+        <span class="absolute left-3 top-2.5 text-gray-400"><MagnifyingGlassIcon class="h-5 w-5" /></span>
       </div>
       <button @click="fetch" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Filtrar</button>
     </div>
@@ -104,6 +104,7 @@ import { useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { ColaboradorRespostaDTO, Page } from '../../../types/colaborador';
 import { getIniciais } from '../../../utils/formatters';
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
 const colaboradores = ref<ColaboradorRespostaDTO[]>([]);

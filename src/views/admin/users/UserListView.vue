@@ -85,7 +85,7 @@
                     title="Editar"
                     @click="editarUsuario(user.id)"
                   >
-                    ✏️
+                    <PencilSquareIcon class="h-5 w-5" />
                   </button>
                   <button 
                     v-if="user.ativo"
@@ -93,7 +93,7 @@
                     title="Bloquear Acesso"
                     @click="alterarStatus(user, false)"
                   >
-                    🚫
+                    <XMarkIcon class="h-5 w-5" />
                   </button>
                   <button 
                     v-else
@@ -101,7 +101,7 @@
                     title="Reativar Acesso"
                     @click="alterarStatus(user, true)"
                   >
-                    ✅
+                    <CheckCircleIcon class="h-5 w-5" />
                   </button>
                 </div>
               </td>
@@ -146,6 +146,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { UsuarioDTO, Page } from '../../../types/user';
+import { XMarkIcon, PencilSquareIcon, CheckCircleIcon } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
 const users = ref<UsuarioDTO[]>([]);

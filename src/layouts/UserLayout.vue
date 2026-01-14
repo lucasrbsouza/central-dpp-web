@@ -6,11 +6,8 @@
 
           <!-- Branding -->
           <router-link to="/home" class="flex items-center gap-4 group">
-            <div
-              class="w-10 h-10 bg-white rounded flex items-center justify-center text-piaui-blue font-bold text-xl group-hover:scale-105 transition-transform"
-            >
-              PI
-            </div>
+            <img src="../assets/public/logo2.png" alt="Logo"
+              class="w-10 h-10 bg-white rounded object-contain p-1 group-hover:scale-105 transition-transform" />
             <div>
               <h1 class="text-white font-bold text-lg leading-tight">Central DPP</h1>
               <p class="text-blue-200 text-xs">Governo do Piauí</p>
@@ -18,21 +15,12 @@
           </router-link>
 
           <!-- Navigation -->
-          <UserNavMenu
-            :mobileOpen="mobileMenuOpen"
-            @close="mobileMenuOpen = false"
-            @logout="authStore.logout()"
-          />
+          <UserNavMenu :mobileOpen="mobileMenuOpen" @close="mobileMenuOpen = false" @logout="authStore.logout()" />
 
           <!-- User Profile -->
-          <UserProfileMenu
-            :nome="authStore.nomeCompleto"
-            :nomeCurto="authStore.user?.nome || ''"
-            :cargo="authStore.user?.cargo || 'Colaborador'"
-            :mobileOpen="mobileMenuOpen"
-            @logout="authStore.logout()"
-            @toggle-mobile="mobileMenuOpen = !mobileMenuOpen"
-          />
+          <UserProfileMenu :nome="authStore.nomeCompleto" :nomeCurto="authStore.user?.nome || ''"
+            :cargo="authStore.user?.cargo || 'Colaborador'" :mobileOpen="mobileMenuOpen" @logout="authStore.logout()"
+            @toggle-mobile="mobileMenuOpen = !mobileMenuOpen" />
         </div>
       </div>
     </header>
@@ -41,11 +29,7 @@
       <router-view />
     </main>
 
-    <footer class="bg-white border-t border-gray-200 py-6 mt-auto">
-      <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-        &copy; {{ new Date().getFullYear() }} Diretoria de Pagamento de Pessoal - SEAD/PI
-      </div>
-    </footer>
+<Footer />
   </div>
 </template>
 
@@ -54,6 +38,7 @@ import { ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 
 import UserNavMenu from '../components/navigation/UserNavMenu.vue';
+import Footer from '../components/common/Footer.vue';
 import UserProfileMenu from '../components/user/UserProfileMenu.vue';
 
 const authStore = useAuthStore();
@@ -70,6 +55,7 @@ const mobileMenuOpen = ref(false);
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

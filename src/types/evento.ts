@@ -1,14 +1,19 @@
-export type TipoEvento = 'REUNIAO' | 'TREINAMENTO' | 'FERIADO' | 'ANIVERSARIO' | 'OUTRO';
+// src/types/evento.ts
+
+// Mudamos de Union Type fixo para string, pois agora vem do banco
+export type TipoEvento = string; 
 
 export interface EventoDTO {
   id: number;
   titulo: string;
   descricao?: string;
   tipo: TipoEvento;
-  dataInicio: string;
-  dataFim: string;
+  dataInicio: string; // ISO String
+  dataFim: string;    // ISO String
   ativo: boolean;
   equipeNome?: string;
+  equipeId?: number;
+  colaboradorNome?: string;
 }
 
 export interface EventoForm {
@@ -18,8 +23,8 @@ export interface EventoForm {
   dataInicio: string;
   dataFim: string;
   ativo: boolean;
-  equipeId?: number | null;     // Opcional
-  colaboradorId?: number | null; // Organizador
+  equipeId: number | null;     
+  colaboradorId: number | null; 
 }
 
 export interface Page<T> {

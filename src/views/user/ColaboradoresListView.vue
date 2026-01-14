@@ -71,6 +71,7 @@ import type { ColaboradorRespostaDTO, Page } from '../../types/colaborador';
 import { getIniciais } from '../../utils/formatters';
 import ColaboradorDetalhesModal from '../../components/user/ColaboradorDetalhesModal.vue';
 
+
 const colaboradores = ref<ColaboradorRespostaDTO[]>([]);
 const loading = ref(true);
 const termoBusca = ref('');

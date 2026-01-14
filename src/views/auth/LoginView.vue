@@ -4,7 +4,7 @@
       
       <div class="p-8 text-center">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
-          <span class="text-3xl">🏛️</span>
+          <span class="text-3xl"><img src="../../assets/public/logo.png" alt=""></span>
         </div>
         <h1 class="text-2xl font-bold text-piaui-blue">Central DPP</h1>
         <p class="text-gray-500 mt-2 text-sm">Diretoria de Pagamento de Pessoal</p>

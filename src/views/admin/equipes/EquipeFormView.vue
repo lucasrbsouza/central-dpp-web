@@ -2,7 +2,7 @@
   <div class="max-w-3xl mx-auto">
     
     <div class="flex items-center gap-4 mb-8">
-      <router-link to="/admin/equipes" class="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition">⬅️</router-link>
+      <router-link to="/admin/equipes" class="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition"><ArrowLeftIcon class="w-5 h-5" /></router-link>
       <div>
         <h2 class="text-2xl font-bold text-gray-800">{{ isEdicao ? 'Editar Equipe' : 'Nova Equipe' }}</h2>
         <p class="text-gray-600 text-sm">Defina o nome, hierarquia e liderança.</p>
@@ -97,6 +97,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { EquipeForm, EquipeDTO } from '../../../types/equipe';
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
+import { toast } from 'vue-sonner';
 // Importamos tipos auxiliares se necessário
 interface ColaboradorResumo { id: number; nome: string; sobrenome: string; }
 
@@ -158,10 +160,10 @@ const salvar = async () => {
     
     if (isEdicao.value) {
       await api.put(`/equipes/${route.params.id}`, payload);
-      alert('Equipe atualizada!');
+      toast.success('Equipe atualizada!');
     } else {
       await api.post('/equipes', payload);
-      alert('Equipe criada com sucesso!');
+      toast.success('Equipe criada com sucesso!');
     }
     router.push('/admin/equipes');
   } catch (error: any) {

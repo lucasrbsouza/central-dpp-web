@@ -24,7 +24,7 @@ export default {
       },
       fontFamily: {
         // Fonte sans-serif padrão para boa leitura em telas
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['"Open Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         'base-plus': '1.05rem', 

@@ -28,7 +28,7 @@
         <p class="text-gray-500 text-sm flex-1">{{ item.descricao }}</p>
         
         <div class="mt-4 text-piaui-blue font-semibold text-sm group-hover:underline">
-          Aceder agora &rarr;
+          Entrar Agora &rarr;
         </div>
       </a>
     </div>

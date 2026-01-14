@@ -8,6 +8,7 @@
         {{ nome }}
       </p>
       <p class="text-blue-300 text-xs">{{ cargo }}</p>
+      <p class="text-blue-300 text-xs">{{ email }}</p>
     </router-link>
 
     <button
@@ -32,6 +33,7 @@
       <span class="text-2xl block leading-none">{{ mobileOpen ? '✕' : '☰' }}</span>
     </button>
   </div>
+  
 </template>
 
 <script setup lang="ts">
@@ -39,6 +41,7 @@ defineProps<{
   nome: string;
   nomeCurto: string;
   cargo: string;
+  email?: string;
   mobileOpen: boolean;
 }>();
 

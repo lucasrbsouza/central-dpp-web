@@ -68,8 +68,8 @@
 
               <td class="p-4 text-right">
                 <div class="flex items-center justify-end gap-2">
-                  <button @click="editar(equipe.id)" class="text-gray-400 hover:text-piaui-blue p-2 rounded hover:bg-blue-50 transition">✏️</button>
-                  <button @click="excluir(equipe.id)" class="text-gray-400 hover:text-piaui-red p-2 rounded hover:bg-red-50 transition">🗑️</button>
+                  <button @click="editar(equipe.id)" class="text-gray-400 hover:text-piaui-blue p-2 rounded hover:bg-blue-50 transition"><PencilSquareIcon class="w-5 h-5" /></button>
+                  <button @click="excluir(equipe.id)" class="text-gray-400 hover:text-piaui-red p-2 rounded hover:bg-red-50 transition"><TrashIcon class="w-5 h-5" /></button>
                 </div>
               </td>
             </tr>
@@ -95,6 +95,8 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { EquipeDTO, Page } from '../../../types/equipe';
+import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { toast } from 'vue-sonner';
 
 const router = useRouter();
 const equipes = ref<EquipeDTO[]>([]);

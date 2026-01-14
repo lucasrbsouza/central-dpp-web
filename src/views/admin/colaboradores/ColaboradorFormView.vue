@@ -1,201 +1,311 @@
 <template>
-  <div class="max-w-4xl mx-auto">
+  <div class="bg-white p-6 rounded-lg shadow-lg relative">
     
-    <div class="flex items-center gap-4 mb-8">
-      <router-link to="/admin/colaboradores" class="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition">⬅️</router-link>
+    <div v-if="loading" class="absolute inset-0 bg-white/80 z-10 flex items-center justify-center rounded-lg">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">{{ id ? 'Editar' : 'Novo' }} Colaborador</h2>
+      <button @click="voltar" class="text-gray-500 hover:text-gray-700 text-2xl leading-none">
+        &times;
+      </button>
+    </div>
+    
+    <form @submit.prevent="salvar" class="space-y-6">
+      
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">Editar Colaborador</h2>
-        <p class="text-gray-600 text-sm">Atualize as informações funcionais e pessoais.</p>
-      </div>
-    </div>
+        <h3 class="text-lg font-medium text-gray-700 border-b pb-2 mb-4">Dados Pessoais</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nome <span class="text-red-500">*</span></label>
+            <input 
+              v-model="form.nome" 
+              type="text" 
+              class="input-padrao w-full mt-1" 
+              required 
+              placeholder="Primeiro nome" 
+            />
+          </div>
 
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-piaui-blue"></div>
-    </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Sobrenome <span class="text-red-500">*</span></label>
+            <input 
+              v-model="form.sobrenome" 
+              type="text" 
+              class="input-padrao w-full mt-1" 
+              required 
+              placeholder="Sobrenome completo" 
+            />
+          </div>
 
-    <div v-else class="bg-white rounded-lg shadow-md border border-gray-200 p-8">
-      <form @submit.prevent="salvar" class="space-y-6">
-        
-        <h3 class="text-sm font-bold text-gray-400 uppercase border-b pb-2">Identificação</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="label-form">Nome <span class="text-red-500">*</span></label>
-            <input v-model="form.nome" type="text" required class="input-form">
+            <label class="block text-sm font-medium text-gray-700">Data de Nascimento <span class="text-red-500">*</span></label>
+            <input 
+              v-model="form.dataDeNascimento" 
+              type="date" 
+              class="input-padrao w-full mt-1" 
+              required 
+            />
           </div>
+
           <div>
-            <label class="label-form">Sobrenome <span class="text-red-500">*</span></label>
-            <input v-model="form.sobrenome" type="text" required class="input-form">
-          </div>
-          <div>
-            <label class="label-form">Matrícula <span class="text-red-500">*</span></label>
-            <input v-model="form.matricula" type="text" required class="input-form">
-          </div>
-          <div>
-            <label class="label-form">Gênero <span class="text-red-500">*</span></label>
-            <select v-model="form.genero" class="input-form bg-white">
+            <label class="block text-sm font-medium text-gray-700">Gênero <span class="text-red-500">*</span></label>
+            <select v-model="form.genero" class="input-padrao w-full mt-1" required>
+              <option value="" disabled>Selecione...</option>
               <option value="MASCULINO">Masculino</option>
               <option value="FEMININO">Feminino</option>
               <option value="OUTRO">Outro</option>
             </select>
           </div>
-        </div>
 
-        <h3 class="text-sm font-bold text-gray-400 uppercase border-b pb-2 pt-4">Dados Funcionais</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Telefone</label>
+            <input 
+              v-model="form.telefone" 
+              type="tel" 
+              class="input-padrao w-full mt-1" 
+              placeholder="(99) 99999-9999" 
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-medium text-gray-700 border-b pb-2 mb-4">Dados Profissionais</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Matrícula <span class="text-red-500">*</span></label>
+            <input 
+              v-model="form.matricula" 
+              type="text" 
+              class="input-padrao w-full mt-1" 
+              required 
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Data Entrada Setor</label>
+            <input 
+              v-model="form.dataEntradaSetor" 
+              type="date" 
+              class="input-padrao w-full mt-1" 
+            />
+          </div>
+
           <div class="md:col-span-2">
-            <label class="label-form">Equipe / Setor <span class="text-red-500">*</span></label>
-            <select v-model="form.equipeId" required class="input-form bg-white">
-              <option :value="null" disabled>Selecione uma equipe</option>
-              <option v-for="eq in equipes" :key="eq.id" :value="eq.id">
-                {{ eq.nome }}
+            <label class="block text-sm font-medium text-gray-700">Equipe / Setor <span class="text-red-500">*</span></label>
+            <select v-model="form.equipeId" class="input-padrao w-full mt-1" required>
+              <option :value="null" disabled>Selecione a equipe...</option>
+              <option v-for="equipe in equipesOptions" :key="equipe.id" :value="equipe.id">
+                {{ equipe.label }}
               </option>
             </select>
           </div>
-          <div>
-            <label class="label-form">Cargo <span class="text-red-500">*</span></label>
-            <input v-model="form.cargo" type="text" required class="input-form">
-          </div>
-          <div>
-            <label class="label-form">Data de Entrada no Setor</label>
-            <input v-model="form.dataEntradaSetor" type="date" class="input-form">
-          </div>
-          <div class="md:col-span-2">
-            <label class="label-form">Atribuição Principal</label>
-            <textarea v-model="form.atribuicao" rows="2" class="input-form resize-none"></textarea>
-          </div>
-        </div>
 
-        <h3 class="text-sm font-bold text-gray-400 uppercase border-b pb-2 pt-4">Dados Pessoais</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="label-form">Telefone</label>
-            <input v-model="form.telefone" type="text" placeholder="(XX) XXXXX-XXXX" class="input-form">
-          </div>
-          <div>
-            <label class="label-form">Data de Nascimento</label>
-            <input v-model="form.dataDeNascimento" type="date" class="input-form">
-          </div>
-          <div>
-            <label class="label-form">Escolaridade</label>
-            <select v-model="form.escolaridade" class="input-form bg-white">
-              <option value="">Selecione...</option>
-              <option value="Ensino Médio">Ensino Médio</option>
-              <option value="Superior Incompleto">Superior Incompleto</option>
-              <option value="Superior Completo">Superior Completo</option>
-              <option value="Pós-Graduação">Pós-Graduação</option>
+            <label class="block text-sm font-medium text-gray-700">Cargo</label>
+            <select v-model="form.cargo" class="input-padrao w-full mt-1">
+              <option value="" disabled>Selecione...</option>
+              <option v-for="c in store.cargosOptions" :key="c.id" :value="c.label">
+                {{ c.label }}
+              </option>
             </select>
           </div>
+
           <div>
-            <label class="label-form">Formação (Curso)</label>
-            <input v-model="form.formacao" type="text" class="input-form">
+            <label class="block text-sm font-medium text-gray-700">Atribuição / Função</label>
+            <input 
+              v-model="form.atribuicao" 
+              type="text" 
+              class="input-padrao w-full mt-1" 
+              placeholder="Ex: Desenvolvedor Frontend" 
+            />
           </div>
         </div>
+      </div>
 
-        <div class="bg-gray-50 p-4 rounded border border-gray-200 flex items-center gap-3">
-          <input type="checkbox" id="ativo" v-model="form.ativo" class="w-5 h-5 text-piaui-blue rounded focus:ring-piaui-blue">
-          <label for="ativo" class="text-sm font-bold text-gray-700 cursor-pointer select-none">Colaborador Ativo no Sistema</label>
+      <div>
+        <h3 class="text-lg font-medium text-gray-700 border-b pb-2 mb-4">Escolaridade e Formação</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nível de Escolaridade</label>
+            <select v-model="form.escolaridade" class="input-padrao w-full mt-1">
+              <option value="" disabled>Selecione...</option>
+              <option v-for="esc in store.escolaridadesOptions" :key="esc.id" :value="esc.label">
+                {{ esc.label }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Área de Formação</label>
+            <select v-model="form.formacao" class="input-padrao w-full mt-1">
+              <option value="" disabled>Selecione...</option>
+              <option v-for="f in store.formacoesOptions" :key="f.id" :value="f.label">
+                {{ f.label }}
+              </option>
+            </select>
+          </div>
         </div>
+      </div>
 
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-          <router-link to="/admin/colaboradores" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">Cancelar</router-link>
-          <button type="submit" :disabled="salvando" class="px-6 py-2 bg-piaui-blue text-white rounded-md hover:bg-blue-800 transition flex items-center disabled:opacity-50">
-            <span v-if="salvando" class="animate-spin mr-2">⚪</span>
-            {{ salvando ? 'Salvando...' : 'Atualizar Dados' }}
-          </button>
-        </div>
+      <div class="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-100">
+        <input 
+          v-model="form.ativo" 
+          type="checkbox" 
+          id="ativoColab" 
+          class="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" 
+        />
+        <label for="ativoColab" class="ml-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
+          Colaborador Ativo
+        </label>
+      </div>
 
-      </form>
-    </div>
+      <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+         <button 
+           type="button" 
+           @click="voltar" 
+           class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+         >
+           Cancelar
+         </button>
+         <button 
+           type="submit" 
+           :disabled="salvando" 
+           class="btn-primary flex items-center gap-2"
+         >
+            <span v-if="salvando" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            {{ id ? 'Atualizar Colaborador' : 'Criar Colaborador' }}
+         </button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import api from '../../../services/api';
+import { useAuxiliaresStore } from '../../../stores/auxiliares';
+import ColaboradorService from '../../../services/ColaboradorService';
+import EquipeService from '../../../services/EquipeService';
+import type { OptionDTO } from '../../../types/auxiliares';
 import type { ColaboradorAdminForm } from '../../../types/colaborador';
-import type { EquipeDTO } from '../../../types/equipe';
+import { toast } from 'vue-sonner';
 
+// Utils
 const route = useRoute();
 const router = useRouter();
-const loading = ref(true);
-const salvando = ref(false);
-const equipes = ref<EquipeDTO[]>([]);
+const store = useAuxiliaresStore();
 
+// State
+const id = route.params.id ? Number(route.params.id) : null;
+const loading = ref(false);
+const salvando = ref(false);
+const equipesOptions = ref<OptionDTO[]>([]);
+
+// Form State tipado
 const form = ref<ColaboradorAdminForm>({
   nome: '',
   sobrenome: '',
   matricula: '',
-  genero: 'OUTRO',
-  cargo: '',
-  atribuicao: '',
-  dataEntradaSetor: '',
-  escolaridade: '',
-  formacao: '',
+  genero: 'MASCULINO', 
   dataDeNascimento: '',
   telefone: '',
-  ativo: true,
-  equipeId: null
+  cargo: '',        
+  atribuicao: '',
+  equipeId: null,
+  dataEntradaSetor: '',
+  escolaridade: '', 
+  formacao: '',     
+  ativo: true
 });
 
+// Lifecycle
 onMounted(async () => {
-  const id = route.params.id;
-  if (!id) return;
-
+  loading.value = true;
   try {
-    // 1. Carrega Equipes para o dropdown
-    const resEquipes = await api.get('/equipes?size=100');
-    equipes.value = resEquipes.data.content;
+    await Promise.all([
+      store.buscarDadosSeNecessario(),
+      carregarEquipes()
+    ]);
 
-    // 2. Carrega Dados do Colaborador
-    const { data } = await api.get(`/colaboradores/${id}`);
-    
-    // 3. Popula o formulário
-    form.value = {
-      nome: data.nome,
-      sobrenome: data.sobrenome,
-      matricula: data.matricula,
-      genero: data.genero || 'OUTRO',
-      cargo: data.cargo,
-      atribuicao: data.atribuicao || '',
-      dataEntradaSetor: data.dataEntradaSetor || '',
-      escolaridade: data.escolaridade || '',
-      formacao: data.formacao || '',
-      dataDeNascimento: data.dataDeNascimento || '',
-      telefone: data.telefone || '',
-      ativo: data.ativo,
-      equipeId: data.equipe ? data.equipe.id : null
-    };
-
+    if (id) {
+      await carregarColaborador(id);
+    }
   } catch (error) {
-    alert('Erro ao carregar dados.');
-    router.push('/admin/colaboradores');
+    console.error("Erro ao inicializar formulário", error);
+    toast.error("Erro de conexão ao carregar dados.");
   } finally {
     loading.value = false;
   }
 });
 
+// Métodos de Carga
+const carregarEquipes = async () => {
+  try {
+    const data = await EquipeService.getEquipesDropdown();
+    equipesOptions.value = data;
+  } catch (error) {
+    console.error("Erro ao carregar equipes", error);
+    toast.error("Erro ao carregar equipes.");
+    equipesOptions.value = [];
+  }
+};
+
+const carregarColaborador = async (colabId: number) => {
+  try {
+    // CORREÇÃO: O Service já retorna o objeto direto, não { data }
+    const colaborador = await ColaboradorService.buscarPorId(colabId);
+    
+    // Mapear resposta da API para o form
+    form.value = {
+      nome: colaborador.nome,
+      sobrenome: colaborador.sobrenome,
+      matricula: colaborador.matricula,
+      genero: (colaborador.genero as 'MASCULINO' | 'FEMININO' | 'OUTRO') || 'OUTRO',
+      dataDeNascimento: colaborador.dataDeNascimento || '',
+      telefone: colaborador.telefone || '',
+      cargo: colaborador.cargo || '',
+      atribuicao: colaborador.atribuicao || '',
+      equipeId: colaborador.equipe ? colaborador.equipe.id : null,
+      dataEntradaSetor: colaborador.dataEntradaSetor || '',
+      escolaridade: colaborador.escolaridade || '',
+      formacao: colaborador.formacao || '',
+      ativo: colaborador.ativo
+    };
+  } catch (error) {
+    console.error("Erro ao buscar colaborador", error);
+    toast.info("Colaborador não encontrado.");
+    router.push('/admin/colaboradores');
+  }
+};
+
+// Ações
 const salvar = async () => {
   salvando.value = true;
   try {
-    // PUT para /colaboradores/{id} com o DTO completo
-    await api.put(`/colaboradores/${route.params.id}`, form.value);
-    alert('Colaborador atualizado com sucesso!');
+    if (id) {
+      await ColaboradorService.atualizar(id, form.value);
+      toast.success("Colaborador atualizado com sucesso!");
+    } else {
+      await ColaboradorService.criar(form.value);
+      alert("Colaborador criado com sucesso!");
+    }
     router.push('/admin/colaboradores');
   } catch (error: any) {
-    const msg = error.response?.data?.message || 'Erro ao salvar.';
-    alert(`Erro: ${msg}`);
+    console.error("Erro ao salvar", error);
+    const msg = error.response?.data?.message || "Erro ao salvar dados. Verifique os campos.";
+    toast.error(msg);
   } finally {
     salvando.value = false;
   }
 };
-</script>
 
-<style scoped>
-.label-form {
-  @apply block text-sm font-bold text-gray-700 mb-1 uppercase tracking-wide;
-}
-.input-form {
-  @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none transition;
-}
-</style>
+const voltar = () => {
+  router.back();
+};
+</script>

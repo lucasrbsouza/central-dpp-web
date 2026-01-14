@@ -78,7 +78,7 @@
 
             <tr v-if="avisos.length === 0">
               <td colspan="4" class="p-10 text-center text-gray-500">
-                <div class="mb-2 text-4xl">📢</div>
+                <div class="mb-2 text-4xl"><BellIcon class="w-12 h-12 mx-auto text-gray-300" /></div>
                 Nenhum aviso publicado.
               </td>
             </tr>
@@ -101,6 +101,8 @@ import { ref, onMounted } from 'vue';
 import api from '../../../services/api';
 import type { AvisoDTO, Page } from '../../../types/aviso';
 import { formatarDataHora } from '../../../utils/formatters';
+import { BellIcon } from '@heroicons/vue/24/outline';
+import { toast } from 'vue-sonner';
 
 const avisos = ref<AvisoDTO[]>([]);
 const loading = ref(true);
@@ -136,6 +138,7 @@ const excluirAviso = async (id: number) => {
   
   try {
     await api.delete(`/avisos/${id}`);
+    toast.success('Aviso excluído com sucesso!');
     fetchAvisos(pageAtual.value); // Recarrega a lista
   } catch (error) {
     alert('Erro ao excluir aviso.');

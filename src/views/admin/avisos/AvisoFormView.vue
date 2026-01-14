@@ -7,7 +7,7 @@
         class="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition"
         title="Voltar"
       >
-        ⬅️
+        <ArrowLeftIcon class="w-5 h-5"/>
       </router-link>
       <div>
         <h2 class="text-2xl font-bold text-gray-800">
@@ -71,7 +71,7 @@
 
         <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
           <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-            📅 Período de Exibição
+            <CalendarDateRangeIcon class="w-4 h-4" /> Período de Exibição
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -123,6 +123,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { AvisoForm } from '../../../types/aviso';
+import { ArrowLeftIcon, CalendarDateRangeIcon } from '@heroicons/vue/24/outline';
 
 const route = useRoute();
 const router = useRouter();

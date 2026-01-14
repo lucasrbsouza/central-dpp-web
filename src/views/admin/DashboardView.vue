@@ -16,7 +16,7 @@
               <p class="text-sm font-medium text-gray-500">Total de Usuários</p>
               <p class="text-3xl font-bold text-gray-800">{{ stats?.totalUsuarios || 0 }}</p>
             </div>
-            <div class="p-3 bg-blue-50 rounded-full text-piaui-blue text-xl">👥</div>
+            <div class="p-3 bg-blue-50 rounded-full text-piaui-blue text-xl"><UsersIcon class="h-5 w-5" /></div>
           </div>
           <p class="text-xs text-gray-400 mt-2">
             <span class="text-piaui-green font-bold">{{ stats?.totalUsuariosAtivos || 0 }}</span> ativos agora
@@ -29,7 +29,7 @@
               <p class="text-sm font-medium text-gray-500">Equipes/Setores</p>
               <p class="text-3xl font-bold text-gray-800">{{ stats?.totalEquipes || 0 }}</p>
             </div>
-            <div class="p-3 bg-yellow-50 rounded-full text-yellow-700 text-xl">🏢</div>
+            <div class="p-3 bg-yellow-50 rounded-full text-yellow-700 text-xl"><BuildingOfficeIcon class="h-5 w-5" /></div>
           </div>
         </div>
 
@@ -39,7 +39,7 @@
               <p class="text-sm font-medium text-gray-500">Documentos</p>
               <p class="text-3xl font-bold text-gray-800">{{ stats?.totalDocumentos || 0 }}</p>
             </div>
-            <div class="p-3 bg-green-50 rounded-full text-piaui-green text-xl">📂</div>
+            <div class="p-3 bg-green-50 rounded-full text-piaui-green text-xl"><FolderIcon class="h-5 w-5" /></div>
           </div>
         </div>
 
@@ -49,7 +49,7 @@
               <p class="text-sm font-medium text-gray-500">Armazenamento</p>
               <p class="text-xl font-bold text-gray-800">{{ formatarBytes(stats?.armazenamentoUsadoBytes || 0) }}</p>
             </div>
-            <div class="p-3 bg-red-50 rounded-full text-piaui-red text-xl">💾</div>
+            <div class="p-3 bg-red-50 rounded-full text-piaui-red text-xl"><PhHardDrive class="h-5 w-5" /></div>
           </div>
           
           <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
@@ -106,6 +106,8 @@ import { ref, onMounted, computed } from 'vue';
 import api from '../../services/api';
 import type { AdminDashboardData } from '../../types/admin';
 import { formatarBytes, formatarDataHora } from '../../utils/formatters';
+import { UsersIcon, BuildingOfficeIcon, FolderIcon } from '@heroicons/vue/24/outline';
+import { PhHardDrive } from "@phosphor-icons/vue";
 
 const stats = ref<AdminDashboardData | null>(null);
 const loading = ref(true);

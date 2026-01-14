@@ -1,4 +1,9 @@
-ok, agora vamos alguns detalhes a mais, desde o começo do desenvolvimento
-quero que voce ja diferencie o que vai aparecer na tela tanto pra quem é admin e gestor, tanto pra quem é usuario normal
-e o nome do projeto não é sistema dpp, é central dpp.
-vamos começar fazendo o Login
+Eu tenho esse frontend que eu preciso implementar algumas coisas novas de acordo com api-docs,
+é importante que siga o padrão de componentizar ou reaproveitar componentes para o desenvolvimento, siga SOLID e clean code quando possivel,
+eu quero implementar todas as parte de Cadastros Auxiliares que tem na API, 
+ja tem algumas Views no front que tem umas partes que implementam de forma obseleta onde tem que entrar essas partes da API, ja modifique também essas views para usaram esses endpoints novos e atualizados
+é importante também que voce foque em desempenho, otimizacao, e segurança do front, pois é necessario que esse front tenham essas caracteristicas.
+
+EventoFormView
+AgendaCalendarioView
+UserProfileView

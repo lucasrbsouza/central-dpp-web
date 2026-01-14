@@ -6,19 +6,22 @@ export interface ColaboradorPerfil {
   genero: 'MASCULINO' | 'FEMININO' | 'OUTRO';
   cargo: string;
   atribuicao?: string;
-  dataEntradaSetor: string;
+  dataEntradaSetor?: string;
   escolaridade?: string;
   formacao?: string;
   dataDeNascimento: string;
   telefone: string;
   ativo: boolean;
+
+    // vem do usuario associado
+  email?: string;
   equipe?: {
     id: number;
     nome: string;
   };
 }
 
-// Interface do que enviamos para atualizar (PUT /meu-perfil)
+// Interface para o PUT /meu-perfil
 export interface AtualizarPerfilForm {
   nome: string;
   sobrenome: string;
@@ -36,9 +39,8 @@ export interface ColaboradorDTO {
   id: number;
   nome: string;
   sobrenome: string;
-  email: string;
+  matricula: string;
   cargo: string;
-  foto?: string; // Se tiver URL da foto
   equipeId?: number;
   equipeNome?: string;
 }
@@ -47,14 +49,22 @@ export interface ColaboradorRespostaDTO {
   id: number;
   nome: string;
   sobrenome: string;
-  email: string;
   matricula: string;
+  genero: 'MASCULINO' | 'FEMININO' | 'OUTRO';
   cargo: string;
-  genero?: string;
-  telefone?: string;
   atribuicao?: string;
+  
+  dataEntradaSetor?: string;
+  escolaridade?: string;
+  formacao?: string;
+  
   dataDeNascimento?: string;
+  telefone?: string;
   ativo: boolean;
+
+  // vem do usuario associado
+  email?: string;
+  
   equipe?: {
     id: number;
     nome: string;
