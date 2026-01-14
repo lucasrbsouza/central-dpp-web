@@ -1,95 +1,84 @@
 <template>
-  <div class="max-w-3xl mx-auto">
+  <BaseFormLayout 
+    max-width="2xl" 
+    :loading="loadingInicial" 
+    @submit="salvar"
+  >
     
-    <div class="flex items-center gap-4 mb-8">
-      <router-link to="/admin/equipes" class="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition"><ArrowLeftIcon class="w-5 h-5" /></router-link>
-      <div>
-        <h2 class="text-2xl font-bold text-gray-800">{{ isEdicao ? 'Editar Equipe' : 'Nova Equipe' }}</h2>
-        <p class="text-gray-600 text-sm">Defina o nome, hierarquia e liderança.</p>
-      </div>
-    </div>
+    <template #header>
+      <PageHeader 
+        :title="isEdicao ? 'Editar Equipe' : 'Nova Equipe'"
+        subtitle="Defina o nome, hierarquia e liderança."
+      >
+        <template #back-button>
+          <router-link 
+            to="/admin/equipes" 
+            class="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition mr-2"
+            title="Voltar"
+          >
+            <ArrowLeftIcon class="w-5 h-5"/>
+          </router-link>
+        </template>
+      </PageHeader>
+    </template>
 
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-8">
+    <div class="space-y-6">
       
-      <div v-if="loadingInicial" class="text-center py-10">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-piaui-blue"></div>
-      </div>
+      <BaseInput 
+        v-model="form.nome" 
+        label="Nome da Equipe / Setor" 
+        placeholder="Ex: Coordenação de TI" 
+        required 
+        maxlength="100"
+      />
 
-      <form v-else @submit.prevent="salvar" class="space-y-6">
+      <BaseInput 
+        v-model="form.descricao" 
+        label="Descrição" 
+        placeholder="Ex: Responsável pela infraestrutura..." 
+      />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nome da Equipe / Setor <span class="text-red-500">*</span></label>
-          <input 
-            v-model="form.nome" 
-            type="text" 
-            required 
-            maxlength="100"
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none" 
-            placeholder="Ex: Coordenação de TI"
-          >
+          <BaseSelect 
+            v-model="form.idEquipePai" 
+            label="Equipe Superior (Hierarquia)" 
+            :options="opcoesEquipes" 
+            placeholder="Selecione..."
+            option-label="label"
+            option-value="value"
+          />
+          <p class="text-xs text-gray-500 mt-1 ml-1">Selecione a qual setor esta equipe responde.</p>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-          <input 
-            v-model="form.descricao" 
-            type="text" 
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none" 
-            placeholder="Ex: Responsável pela infraestrutura..."
-          >
-        </div>
+        <BaseSelect 
+          v-model="form.idLider" 
+          label="Líder / Responsável" 
+          :options="opcoesLideres" 
+          placeholder="-- Sem Líder --"
+        />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Equipe Superior (Hierarquia)</label>
-            <select 
-              v-model="form.idEquipePai" 
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none bg-white"
-            >
-              <option :value="null">-- Nenhuma (Raiz) --</option>
-              <option 
-                v-for="eq in listaEquipes" 
-                :key="eq.id" 
-                :value="eq.id"
-                :disabled="isEdicao && eq.id === Number(route.params.id)"
-              >
-                {{ eq.nome }}
-              </option>
-            </select>
-            <p class="text-xs text-gray-500 mt-1">Selecione a qual setor esta equipe responde.</p>
-          </div>
+      </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Líder / Responsável</label>
-            <select 
-              v-model="form.idLider" 
-              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none bg-white"
-            >
-              <option :value="null">-- Sem Líder --</option>
-              <option v-for="colab in listaColaboradores" :key="colab.id" :value="colab.id">
-                {{ colab.nome }} {{ colab.sobrenome }}
-              </option>
-            </select>
-          </div>
-        </div>
+      <BaseCheckbox 
+        v-model="form.ativo" 
+        label="Equipe Ativa" 
+      />
 
-        <div class="flex items-center gap-2">
-          <input type="checkbox" id="ativo" v-model="form.ativo" class="w-5 h-5 text-piaui-blue rounded focus:ring-piaui-blue">
-          <label for="ativo" class="text-sm font-medium text-gray-700">Equipe Ativa</label>
-        </div>
-
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-          <router-link to="/admin/equipes" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">Cancelar</router-link>
-          <button type="submit" :disabled="salvando" class="px-6 py-2 bg-piaui-blue text-white rounded-md hover:bg-blue-800 transition flex items-center disabled:opacity-50">
-            <span v-if="salvando" class="animate-spin mr-2">⚪</span>
-            {{ salvando ? 'Salvando...' : 'Salvar' }}
-          </button>
-        </div>
-
-      </form>
     </div>
-  </div>
+
+    <template #actions>
+      <BaseButton variant="outline" @click="$router.push('/admin/equipes')">
+        Cancelar
+      </BaseButton>
+      
+      <BaseButton type="submit" :loading="salvando">
+        {{ isEdicao ? 'Salvar Alterações' : 'Criar Equipe' }}
+      </BaseButton>
+    </template>
+
+  </BaseFormLayout>
 </template>
 
 <script setup lang="ts">
@@ -97,10 +86,19 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { EquipeForm, EquipeDTO } from '../../../types/equipe';
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 import { toast } from 'vue-sonner';
-// Importamos tipos auxiliares se necessário
-interface ColaboradorResumo { id: number; nome: string; sobrenome: string; }
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
+
+// Import dos Componentes Padronizados
+import PageHeader from '../../../components/common/PageHeader.vue';
+import BaseFormLayout from '../../../components/layout/BaseFormLayout.vue';
+import BaseInput from '../../../components/common/BaseInput.vue';
+import BaseSelect from '../../../components/common/BaseSelect.vue';
+import BaseCheckbox from '../../../components/common/BaseCheckbox.vue';
+import BaseButton from '../../../components/common/BaseButton.vue';
+
+// Tipos auxiliares para dropdown
+interface OptionItem { label: string; value: number | null; }
 
 const route = useRoute();
 const router = useRouter();
@@ -109,33 +107,53 @@ const loadingInicial = ref(false);
 const salvando = ref(false);
 const isEdicao = computed(() => route.params.id !== undefined);
 
-// Listas para os Dropdowns
-const listaEquipes = ref<EquipeDTO[]>([]);
-const listaColaboradores = ref<ColaboradorResumo[]>([]);
+// Opções formatadas para os Selects
+const opcoesEquipes = ref<OptionItem[]>([]);
+const opcoesLideres = ref<OptionItem[]>([]);
 
 const form = ref<EquipeForm>({
   nome: '',
   descricao: '',
   ativo: true,
-  idEquipePai: null,
+  idEquipePai: null, // null representa Raiz
   idLider: null
 });
 
 onMounted(async () => {
   loadingInicial.value = true;
   try {
-    // 1. Carrega listas auxiliares em paralelo para ser rápido
+    // 1. Carrega dados em paralelo
     const [resEquipes, resColab] = await Promise.all([
-      api.get('/equipes?size=100'), // Pega todas para o dropdown (aumente size se tiver muitas)
+      api.get('/equipes?size=100'),
       api.get('/colaboradores?resumo=true')
     ]);
 
-    listaEquipes.value = resEquipes.data.content;
-    listaColaboradores.value = Array.isArray(resColab.data) ? resColab.data : resColab.data.content || [];
+    // 2. Prepara lista de Colaboradores (Formatando Nome Completo)
+    const rawColabs = Array.isArray(resColab.data) ? resColab.data : resColab.data.content || [];
+    opcoesLideres.value = rawColabs.map((c: any) => ({
+      value: c.id,
+      label: `${c.nome} ${c.sobrenome}`
+    }));
+    // Adiciona opção "Sem Líder" no topo se necessário, ou deixa o placeholder cuidar disso
+    opcoesLideres.value.unshift({ value: null, label: '-- Sem Líder Definido --' });
 
-    // 2. Se for edição, carrega os dados da equipe atual
+    // 3. Prepara lista de Equipes (Removendo a própria equipe se for edição)
+    const rawEquipes = resEquipes.data.content || [];
+    const idAtual = isEdicao.value ? Number(route.params.id) : -1;
+
+    const equipesFiltradas = rawEquipes.filter((eq: EquipeDTO) => eq.id !== idAtual);
+    
+    opcoesEquipes.value = [
+      { value: null, label: '-- Nenhuma (Raiz) --' }, // Opção padrão
+      ...equipesFiltradas.map((eq: EquipeDTO) => ({
+        value: eq.id,
+        label: eq.nome
+      }))
+    ];
+
+    // 4. Se for edição, popula o formulário
     if (isEdicao.value) {
-      const { data } = await api.get(`/equipes/${route.params.id}`);
+      const { data } = await api.get(`/equipes/${idAtual}`);
       form.value = {
         nome: data.nome,
         descricao: data.descricao,
@@ -146,7 +164,7 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Erro ao carregar dados:', error);
-    alert('Erro ao carregar formulário.');
+    toast.error('Erro ao carregar formulário.');
     router.push('/admin/equipes');
   } finally {
     loadingInicial.value = false;
@@ -169,7 +187,7 @@ const salvar = async () => {
   } catch (error: any) {
     console.error(error);
     const msg = error.response?.data?.message || 'Erro ao salvar.';
-    alert(msg);
+    toast.error(msg);
   } finally {
     salvando.value = false;
   }

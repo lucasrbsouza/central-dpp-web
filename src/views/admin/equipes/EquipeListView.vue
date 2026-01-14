@@ -96,7 +96,6 @@ import { useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { EquipeDTO, Page } from '../../../types/equipe';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline';
-import { toast } from 'vue-sonner';
 
 const router = useRouter();
 const equipes = ref<EquipeDTO[]>([]);

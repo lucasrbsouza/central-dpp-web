@@ -1,79 +1,86 @@
 <template>
   <div>
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-      <div>
-        <h2 class="text-2xl font-bold text-gray-800">Ferramentas Externas</h2>
-        <p class="text-gray-600 text-sm">Gerencie os links úteis disponíveis para os colaboradores.</p>
-      </div>
-      <router-link 
-        to="/admin/ferramentas/novo" 
-        class="bg-piaui-blue hover:bg-blue-800 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition shadow-sm"
-      >
-        <span>+</span> Nova Ferramenta
-      </router-link>
-    </div>
+    <PageHeader 
+      title="Ferramentas Externas" 
+      subtitle="Gerencie os links úteis disponíveis para os colaboradores."
+    >
+      <template #actions>
+        <router-link 
+          to="/admin/ferramentas/novo" 
+          class="bg-piaui-blue hover:bg-blue-800 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition shadow-sm font-medium"
+        >
+          <span>+</span> Nova Ferramenta
+        </router-link>
+      </template>
+    </PageHeader>
 
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-      
-      <div v-if="loading" class="p-12 text-center">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-piaui-blue"></div>
-      </div>
+    <BaseListLayout 
+      :loading="loading" 
+      :is-empty="ferramentas.length === 0"
+    >
+      <template #empty>
+        <div class="mb-2 text-4xl text-gray-300">
+          <WrenchScrewdriverIcon class="w-12 h-12 mx-auto" />
+        </div>
+        <p class="text-gray-500 text-lg">Nenhuma ferramenta cadastrada.</p>
+      </template>
 
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
-              <th class="p-4 font-semibold">Título / Descrição</th> <th class="p-4 font-semibold">Link de Destino</th>
-              <th class="p-4 font-semibold text-center">Status</th>
-              <th class="p-4 font-semibold text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="item in ferramentas" :key="item.id" class="hover:bg-gray-50 transition">
-              
-              <td class="p-4">
-                <p class="font-bold text-gray-800">{{ item.titulo }}</p>
-                <p class="text-xs text-gray-500">{{ item.descricao }}</p>
-              </td>
+      <BaseTable :columns="tableColumns" :items="ferramentas">
+        
+        <template #cell-info="{ item: tool }">
+          <div>
+            <p class="font-bold text-gray-800">{{ tool.titulo }}</p>
+            <p class="text-xs text-gray-500">{{ tool.descricao || 'Sem descrição' }}</p>
+          </div>
+        </template>
 
-              <td class="p-4">
-                <a :href="item.link" target="_blank" class="text-piaui-blue hover:underline text-sm flex items-center gap-1">
-                  {{ item.link }} 🔗
-                </a>
-              </td>
+        <template #cell-link="{ item: tool }">
+          <a 
+            :href="tool.link" 
+            target="_blank" 
+            class="text-piaui-blue hover:text-blue-800 hover:underline text-sm flex items-center gap-1 group w-fit"
+            title="Abrir link externo"
+          >
+            <LinkIcon class="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition" />
+            <span class="truncate max-w-[250px]">{{ tool.link }}</span>
+          </a>
+        </template>
 
-              <td class="p-4 text-center">
-                <span 
-                  :class="[
-                    'px-2 py-1 rounded-full text-xs font-bold',
-                    item.ativo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  ]"
-                >
-                  {{ item.ativo ? 'Ativo' : 'Inativo' }}
-                </span>
-              </td>
+        <template #cell-status="{ item: tool }">
+          <BaseBadge 
+            :variant="tool.ativo ? 'success' : 'danger'" 
+            show-dot
+          >
+            {{ tool.ativo ? 'Ativo' : 'Inativo' }}
+          </BaseBadge>
+        </template>
 
-              <td class="p-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button @click="editar(item.id)" class="text-gray-400 hover:text-piaui-blue p-2 rounded hover:bg-blue-50 transition">✏️</button>
-                  <button @click="excluir(item.id)" class="text-gray-400 hover:text-piaui-red p-2 rounded hover:bg-red-50 transition">🗑️</button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="ferramentas.length === 0">
-              <td colspan="4" class="p-10 text-center text-gray-500">Nenhuma ferramenta cadastrada.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <template #cell-actions="{ item: tool }">
+          <div class="flex justify-end gap-2">
+            <BaseActionBtn 
+              action="edit" 
+              @click="editar(tool.id)" 
+            />
+            <BaseActionBtn 
+              action="delete" 
+              @click="excluir(tool.id)" 
+            />
+          </div>
+        </template>
 
-      <div class="bg-gray-50 border-t border-gray-200 p-4 flex justify-between items-center" v-if="totalPages > 1">
-        <button @click="fetch(pageAtual - 1)" :disabled="first" class="px-3 py-1 bg-white border rounded disabled:opacity-50">Anterior</button>
-        <span class="text-sm text-gray-600">Página {{ pageAtual + 1 }} de {{ totalPages }}</span>
-        <button @click="fetch(pageAtual + 1)" :disabled="last" class="px-3 py-1 bg-white border rounded disabled:opacity-50">Próximo</button>
-      </div>
+      </BaseTable>
 
-    </div>
+      <template #pagination>
+        <BasePagination 
+          :page="pageAtual" 
+          :total-pages="totalPages" 
+          :first="first" 
+          :last="last"
+          @change-page="fetch" 
+        />
+      </template>
+
+    </BaseListLayout>
   </div>
 </template>
 
@@ -82,20 +89,39 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { FerramentaDTO, Page } from '../../../types/ferramenta';
+import { WrenchScrewdriverIcon, LinkIcon } from '@heroicons/vue/24/outline';
+import { toast } from 'vue-sonner';
+
+// Componentes Padronizados
+import PageHeader from '../../../components/common/PageHeader.vue';
+import BaseListLayout from '../../../components/layout/BaseListLayout.vue';
+import BaseTable from '../../../components/common/BaseTable.vue';
+import type { TableColumn } from '../../../types/table';
+import BaseBadge from '../../../components/common/BaseBadge.vue';
+import BasePagination from '../../../components/common/BasePagination.vue';
+import BaseActionBtn from '../../../components/common/BaseActionBtn.vue';
 
 const router = useRouter();
 const ferramentas = ref<FerramentaDTO[]>([]);
 const loading = ref(true);
 
+// Paginação
 const pageAtual = ref(0);
 const totalPages = ref(0);
 const first = ref(true);
 const last = ref(true);
 
+// Configuração das Colunas
+const tableColumns: TableColumn[] = [
+  { key: 'info', label: 'Título / Descrição' },
+  { key: 'link', label: 'Link de Destino', width: '300px' },
+  { key: 'status', label: 'Status', align: 'center', width: '120px' },
+  { key: 'actions', label: 'Ações', align: 'right', width: '100px' }
+];
+
 const fetch = async (page = 0) => {
   loading.value = true;
   try {
-    // CORREÇÃO: sort=titulo (era sort=nome)
     const { data } = await api.get<Page<FerramentaDTO>>(`/ferramentas?page=${page}&size=10&sort=titulo,asc`);
     ferramentas.value = data.content;
     pageAtual.value = data.number;
@@ -104,6 +130,7 @@ const fetch = async (page = 0) => {
     last.value = data.last;
   } catch (error) {
     console.error('Erro ao listar ferramentas:', error);
+    toast.error('Erro ao carregar lista de ferramentas.');
   } finally {
     loading.value = false;
   }
@@ -112,12 +139,14 @@ const fetch = async (page = 0) => {
 const editar = (id: number) => router.push(`/admin/ferramentas/${id}/editar`);
 
 const excluir = async (id: number) => {
-  if(!confirm('Remover esta ferramenta?')) return;
+  if(!confirm('Deseja realmente remover esta ferramenta?')) return;
   try {
     await api.delete(`/ferramentas/${id}`);
+    toast.success('Ferramenta removida com sucesso!');
     fetch(pageAtual.value);
   } catch (error) {
-    alert('Erro ao excluir.');
+    console.error(error);
+    toast.error('Erro ao excluir ferramenta.');
   }
 };
 

@@ -1,163 +1,201 @@
 <template>
-  <div class="max-w-3xl mx-auto">
+  <BaseFormLayout 
+    max-width="2xl" 
+    :loading="salvando" 
+    @submit="salvar"
+  >
     
-    <div class="flex items-center gap-4 mb-8">
-      <router-link to="/admin/documentos" class="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition">⬅️</router-link>
-      <div>
-        <h2 class="text-2xl font-bold text-gray-800">Novo Documento</h2>
-        <p class="text-gray-600 text-sm">Faça upload de arquivos ou cadastre links oficiais.</p>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-8">
-      <form @submit.prevent="salvar" class="space-y-6">
-        
-        <div class="flex justify-center mb-6">
-          <div class="bg-gray-100 p-1 rounded-lg flex">
-            <button 
-              type="button"
-              @click="form.tipo = 'ARQUIVO'"
-              :class="['px-6 py-2 rounded-md text-sm font-bold transition', form.tipo === 'ARQUIVO' ? 'bg-white shadow text-piaui-blue' : 'text-gray-500 hover:text-gray-700']"
-            >
-              📄 Upload de Arquivo
-            </button>
-            <button 
-              type="button"
-              @click="form.tipo = 'LINK'"
-              :class="['px-6 py-2 rounded-md text-sm font-bold transition', form.tipo === 'LINK' ? 'bg-white shadow text-piaui-blue' : 'text-gray-500 hover:text-gray-700']"
-            >
-              🔗 Link Externo
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Título do Documento <span class="text-red-500">*</span></label>
-          <input v-model="form.titulo" type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none" placeholder="Ex: Manual de Conduta 2024">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-          <textarea v-model="form.descricao" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none resize-none" placeholder="Breve resumo do conteúdo..."></textarea>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Vincular a uma Equipe/Setor</label>
-          <select v-model="form.equipeId" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none bg-white">
-            <option :value="null">-- Geral (Sem vínculo) --</option>
-            <option v-for="eq in equipes" :key="eq.id" :value="eq.id">{{ eq.nome }}</option>
-          </select>
-        </div>
-
-        <div v-if="form.tipo === 'ARQUIVO'" class="bg-blue-50 p-4 rounded-lg border border-blue-100 animate-fade-in">
-          <label class="block text-sm font-bold text-blue-800 mb-2">Selecione o Arquivo (PDF, DOC, IMG) <span class="text-red-500">*</span></label>
-          <input 
-            type="file" 
-            ref="fileInput"
-            @change="handleFileUpload"
-            required
-            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
+    <template #header>
+      <PageHeader 
+        title="Novo Documento" 
+        subtitle="Faça upload de arquivos ou cadastre links oficiais."
+      >
+        <template #back-button>
+          <router-link 
+            to="/admin/documentos" 
+            class="p-2 rounded-full hover:bg-gray-200 text-gray-500 transition mr-2"
           >
-          <p class="text-xs text-blue-400 mt-2">Tamanho máximo recomendado: 10MB.</p>
-        </div>
+            <ArrowLeftIcon class="w-5 h-5"/>
+          </router-link>
+        </template>
+      </PageHeader>
+    </template>
 
-        <div v-if="form.tipo === 'LINK'" class="bg-gray-50 p-4 rounded-lg border border-gray-200 animate-fade-in">
-          <label class="block text-sm font-bold text-gray-700 mb-1">URL de Destino <span class="text-red-500">*</span></label>
-          <input v-model="form.urlLink" type="url" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-piaui-blue outline-none" placeholder="https://...">
-        </div>
-
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-          <router-link to="/admin/documentos" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">Cancelar</router-link>
-          <button type="submit" :disabled="salvando" class="px-6 py-2 bg-piaui-blue text-white rounded-md hover:bg-blue-800 transition flex items-center disabled:opacity-50">
-            <span v-if="salvando" class="animate-spin mr-2">⚪</span>
-            {{ salvando ? 'Enviando...' : 'Salvar Documento' }}
+    <div class="space-y-6">
+      
+      <div class="flex justify-center">
+        <div class="bg-gray-100 p-1 rounded-lg flex shadow-inner">
+          <button 
+            type="button"
+            @click="form.tipo = 'ARQUIVO'"
+            :class="[
+              'px-6 py-2 rounded-md text-sm font-bold transition flex items-center gap-2', 
+              form.tipo === 'ARQUIVO' ? 'bg-white shadow text-piaui-blue' : 'text-gray-500 hover:text-gray-700'
+            ]"
+          >
+            <DocumentArrowUpIcon class="w-4 h-4" /> Upload de Arquivo
+          </button>
+          <button 
+            type="button"
+            @click="form.tipo = 'LINK'"
+            :class="[
+              'px-6 py-2 rounded-md text-sm font-bold transition flex items-center gap-2', 
+              form.tipo === 'LINK' ? 'bg-white shadow text-piaui-blue' : 'text-gray-500 hover:text-gray-700'
+            ]"
+          >
+            <LinkIcon class="w-4 h-4" /> Link Externo
           </button>
         </div>
+      </div>
 
-      </form>
+      <BaseInput 
+        v-model="form.titulo" 
+        label="Título do Documento" 
+        placeholder="Ex: Manual de Conduta 2024" 
+        required 
+      />
+
+      <BaseTextarea 
+        v-model="form.descricao" 
+        label="Descrição" 
+        placeholder="Breve resumo do conteúdo..."
+        rows="3" 
+      />
+
+      <BaseSelect 
+        v-model="form.equipeId" 
+        label="Vincular a uma Equipe/Setor" 
+        :options="equipesOptions"
+        option-label="label"
+        option-value="id"
+        placeholder="-- Geral (Sem vínculo) --"
+      />
+
+      <Transition name="fade" mode="out-in">
+        
+        <div v-if="form.tipo === 'ARQUIVO'" key="arquivo">
+          <BaseFileUpload 
+            v-model="form.arquivo" 
+            label="Selecione o Arquivo" 
+            required
+            help-text="Suporta PDF, DOCX, XLSX ou Imagens (Máx 20MB)"
+          />
+        </div>
+
+        <div v-else key="link">
+          <BaseInput 
+            v-model="form.urlLink" 
+            label="URL de Destino" 
+            placeholder="https://..." 
+            required 
+            type="url"
+          />
+        </div>
+
+      </Transition>
+
     </div>
-  </div>
+
+    <template #actions>
+      <BaseButton variant="outline" @click="$router.push('/admin/documentos')">
+        Cancelar
+      </BaseButton>
+      
+      <BaseButton type="submit" :loading="salvando">
+        {{ form.tipo === 'ARQUIVO' ? 'Enviar Arquivo' : 'Salvar Link' }}
+      </BaseButton>
+    </template>
+
+  </BaseFormLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../../services/api';
+import uploadApi from '../../../services/uploadApi';
+import EquipeService from '../../../services/EquipeService';
+import { ArrowLeftIcon, DocumentArrowUpIcon, LinkIcon } from '@heroicons/vue/24/outline';
+import { toast } from 'vue-sonner';
+
+// Componentes
+import PageHeader from '../../../components/common/PageHeader.vue';
+import BaseFormLayout from '../../../components/layout/BaseFormLayout.vue';
+import BaseInput from '../../../components/common/BaseInput.vue';
+import BaseTextarea from '../../../components/common/BaseTextarea.vue';
+import BaseSelect from '../../../components/common/BaseSelect.vue';
+import BaseButton from '../../../components/common/BaseButton.vue';
+import BaseFileUpload from '../../../components/common/BaseFileUpload.vue';
+
 import type { DocumentoFormState } from '../../../types/documento';
+import type { OptionDTO } from '../../../types/auxiliares';
 
 const router = useRouter();
 const salvando = ref(false);
-const equipes = ref<any[]>([]); // Para o dropdown
+const equipesOptions = ref<OptionDTO[]>([]);
 
 const form = ref<DocumentoFormState>({
   titulo: '',
   descricao: '',
   equipeId: null,
-  tipo: 'ARQUIVO', // Padrão
+  tipo: 'ARQUIVO',
   urlLink: '',
   arquivo: null
 });
 
-// Captura o arquivo do input
-const handleFileUpload = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  
-  if (file) {
-    // Cria um objeto File compatível se necessário
-    form.value.arquivo = new File([file], file.name, {
-      type: file.type,
-      lastModified: file.lastModified,
-    });
-  } else {
-    form.value.arquivo = null;
-  }
-};
 onMounted(async () => {
-  // Carrega equipes para o dropdown
   try {
-    const { data } = await api.get('/equipes?size=100');
-    equipes.value = data.content;
+    equipesOptions.value = await EquipeService.getEquipesDropdown();
   } catch (error) {
     console.error('Erro ao carregar equipes');
   }
 });
 
 const salvar = async () => {
+  // 1. Validações prévias
+  if (form.value.tipo === 'ARQUIVO' && !form.value.arquivo) {
+    toast.warning('Selecione um arquivo para continuar.');
+    return;
+  }
+  if (form.value.tipo === 'LINK' && !form.value.urlLink) {
+    toast.warning('Informe a URL do link.');
+    return;
+  }
+
   salvando.value = true;
   try {
-    // IMPORTANTE: Criar FormData para enviar binário
+    // 2. Construção do FormData
     const formData = new FormData();
+    
+    // --- Campos Comuns ---
     formData.append('titulo', form.value.titulo);
+    // Envia string vazia se for null/undefined para não quebrar o backend
     formData.append('descricao', form.value.descricao || '');
     
+    // Só envia equipeId se tiver valor
     if (form.value.equipeId) {
       formData.append('equipeId', form.value.equipeId.toString());
     }
 
+    // --- Lógica de Exclusão Mútua (Arquivo OU Link) ---
     if (form.value.tipo === 'LINK') {
+      // Caso LINK: Envia urlLink. NÃO ENVIA o campo 'arquivo'.
       formData.append('urlLink', form.value.urlLink);
-      // Backend exige arquivo? Geralmente não se for link, mas se o Java validar @NotNull no arquivo, 
-      // teremos que ajustar. Pelo seu DTO, arquivo é "Opcional (se for Upload)", então ok.
     } else {
-      if (!form.value.arquivo) {
-        alert('Selecione um arquivo!');
-        salvando.value = false;
-        return;
-      }
-      formData.append('arquivo', form.value.arquivo);
+      // Caso ARQUIVO: Envia arquivo. NÃO ENVIA o campo 'urlLink'.
+      formData.append('arquivo', form.value.arquivo as File);
     }
 
-    // Axios detecta FormData e configura o header 'multipart/form-data' automaticamente
-    await api.post('/documentos', formData);
+    // 3. Envio (O Axios detecta FormData e configura o header multipart automaticamente)
+    await uploadApi.post('/documentos', formData);
     
-    alert('Documento salvo com sucesso!');
+    toast.success('Documento salvo com sucesso!');
     router.push('/admin/documentos');
 
   } catch (error: any) {
     console.error('Erro upload:', error);
-    const msg = error.response?.data?.message || 'Erro ao enviar documento.';
-    alert(msg);
+    const msg = error.response?.data?.message || 'Erro ao processar a requisição.';
+    toast.error(msg);
   } finally {
     salvando.value = false;
   }
@@ -165,11 +203,6 @@ const salvar = async () => {
 </script>
 
 <style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

@@ -1,91 +1,84 @@
 <template>
   <div>
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-      <div>
-        <h2 class="text-2xl font-bold text-gray-800">Agenda de Eventos</h2>
-        <p class="text-gray-600 text-sm">Gerencie reuniões, feriados e treinamentos da secretaria.</p>
-      </div>
-      <router-link 
-        to="/admin/eventos/novo" 
-        class="bg-piaui-blue hover:bg-blue-800 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition shadow-sm"
-      >
-        <span>+</span> Novo Evento
-      </router-link>
-    </div>
+    <PageHeader 
+      title="Agenda de Eventos" 
+      subtitle="Gerencie reuniões, feriados e treinamentos da secretaria."
+    >
+      <template #actions>
+        <router-link 
+          to="/admin/eventos/novo" 
+          class="bg-piaui-blue hover:bg-blue-800 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition shadow-sm font-medium"
+        >
+          <span>+</span> Novo Evento
+        </router-link>
+      </template>
+    </PageHeader>
 
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-      
-      <div v-if="loading" class="p-12 text-center">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-piaui-blue"></div>
-      </div>
+    <BaseListLayout 
+      :loading="loading" 
+      :is-empty="eventos.length === 0"
+    >
+      <template #empty>
+        <div class="mb-2 text-4xl text-gray-300">
+          <CalendarDaysIcon class="w-12 h-12 mx-auto" />
+        </div>
+        <p class="text-gray-500 text-lg">Nenhum evento agendado.</p>
+      </template>
 
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
-              <th class="p-4 font-semibold">Evento</th>
-              <th class="p-4 font-semibold text-center">Tipo</th>
-              <th class="p-4 font-semibold">Data e Hora</th>
-              <th class="p-4 font-semibold text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="evento in eventos" :key="evento.id" class="hover:bg-gray-50 transition">
-              
-              <td class="p-4">
-                <p class="font-bold text-gray-800">{{ evento.titulo }}</p>
-                <p class="text-xs text-gray-500 line-clamp-1">{{ evento.descricao || 'Sem descrição' }}</p>
-              </td>
+      <BaseTable :columns="tableColumns" :items="eventos">
+        
+        <template #cell-evento="{ item: evento }">
+          <div>
+            <p class="font-bold text-gray-800">{{ evento.titulo }}</p>
+            <p class="text-xs text-gray-500 line-clamp-1">
+              {{ evento.descricao || 'Sem descrição' }}
+            </p>
+          </div>
+        </template>
 
-              <td class="p-4 text-center">
-                <span :class="['px-2 py-1 rounded text-xs font-bold uppercase tracking-wide', getCorTipo(evento.tipo)]">
-                  {{ evento.tipo }}
-                </span>
-              </td>
+        <template #cell-tipo="{ item: evento }">
+          <BaseBadge :variant="getBadgeVariant(evento.tipo)">
+            {{ evento.tipo }}
+          </BaseBadge>
+        </template>
 
-              <td class="p-4 text-sm text-gray-600">
-                <div class="flex flex-col">
-                  <span>📅 {{ formatarDataHora(evento.dataInicio) }}</span>
-                  <span class="text-xs text-gray-400">até {{ formatarHora(evento.dataFim) }}</span>
-                </div>
-              </td>
+        <template #cell-data="{ item: evento }">
+          <div class="flex flex-col text-sm text-gray-700">
+            <span class="font-medium flex items-center gap-1">
+              📅 {{ formatarDataHora(evento.dataInicio) }}
+            </span>
+            <span class="text-xs text-gray-400 ml-5">
+              até {{ formatarHora(evento.dataFim) }}
+            </span>
+          </div>
+        </template>
 
-              <td class="p-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button 
-                    @click="editar(evento.id)"
-                    class="text-gray-400 hover:text-piaui-blue p-2 rounded hover:bg-blue-50 transition"
-                    title="Editar"
-                  >
-                    ✏️
-                  </button>
-                  <button 
-                    @click="excluir(evento.id)"
-                    class="text-gray-400 hover:text-piaui-red p-2 rounded hover:bg-red-50 transition"
-                    title="Excluir"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </td>
-            </tr>
+        <template #cell-actions="{ item: evento }">
+          <div class="flex justify-end gap-2">
+            <BaseActionBtn 
+              action="edit" 
+              @click="editar(evento.id)" 
+            />
+            <BaseActionBtn 
+              action="delete" 
+              @click="excluir(evento.id)" 
+            />
+          </div>
+        </template>
 
-            <tr v-if="eventos.length === 0">
-              <td colspan="4" class="p-10 text-center text-gray-500">
-                Nenhum evento agendado.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div class="bg-gray-50 border-t border-gray-200 p-4 flex justify-between items-center" v-if="totalPages > 1">
-        <button @click="mudarPagina(pageAtual - 1)" :disabled="first" class="px-3 py-1 bg-white border rounded disabled:opacity-50">Anterior</button>
-        <span class="text-sm text-gray-600">Página {{ pageAtual + 1 }} de {{ totalPages }}</span>
-        <button @click="mudarPagina(pageAtual + 1)" :disabled="last" class="px-3 py-1 bg-white border rounded disabled:opacity-50">Próximo</button>
-      </div>
+      </BaseTable>
 
-    </div>
+      <template #pagination>
+        <BasePagination 
+          :page="pageAtual" 
+          :total-pages="totalPages" 
+          :first="first" 
+          :last="last"
+          @change-page="mudarPagina" 
+        />
+      </template>
+
+    </BaseListLayout>
   </div>
 </template>
 
@@ -95,6 +88,17 @@ import { useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { EventoDTO, Page } from '../../../types/evento';
 import { formatarDataHora, formatarHora } from '../../../utils/formatters';
+import { CalendarDaysIcon } from '@heroicons/vue/24/outline';
+import { toast } from 'vue-sonner';
+
+// Componentes Padronizados
+import PageHeader from '../../../components/common/PageHeader.vue';
+import BaseListLayout from '../../../components/layout/BaseListLayout.vue';
+import BaseTable from '../../../components/common/BaseTable.vue';
+import type { TableColumn } from '../../../types/table';
+import BaseBadge from '../../../components/common/BaseBadge.vue';
+import BasePagination from '../../../components/common/BasePagination.vue';
+import BaseActionBtn from '../../../components/common/BaseActionBtn.vue';
 
 const router = useRouter();
 const eventos = ref<EventoDTO[]>([]);
@@ -106,15 +110,13 @@ const totalPages = ref(0);
 const first = ref(true);
 const last = ref(true);
 
-const getCorTipo = (tipo: string) => {
-  switch (tipo) {
-    case 'REUNIAO': return 'bg-blue-100 text-blue-700';
-    case 'TREINAMENTO': return 'bg-purple-100 text-purple-700';
-    case 'FERIADO': return 'bg-green-100 text-green-700';
-    case 'ANIVERSARIO': return 'bg-yellow-100 text-yellow-800';
-    default: return 'bg-gray-100 text-gray-700';
-  }
-};
+// Configuração das Colunas
+const tableColumns: TableColumn[] = [
+  { key: 'evento', label: 'Evento' },
+  { key: 'tipo', label: 'Tipo', align: 'center', width: '130px' },
+  { key: 'data', label: 'Data e Hora', width: '200px' },
+  { key: 'actions', label: 'Ações', align: 'right', width: '100px' }
+];
 
 const fetchEventos = async (page = 0) => {
   loading.value = true;
@@ -127,6 +129,7 @@ const fetchEventos = async (page = 0) => {
     last.value = data.last;
   } catch (error) {
     console.error('Erro ao buscar eventos:', error);
+    toast.error('Erro ao carregar a lista de eventos.');
   } finally {
     loading.value = false;
   }
@@ -140,9 +143,29 @@ const excluir = async (id: number) => {
   if(!confirm('Deseja realmente remover este evento?')) return;
   try {
     await api.delete(`/eventos/${id}`);
+    toast.success('Evento removido com sucesso!');
     fetchEventos(pageAtual.value);
   } catch (error) {
-    alert('Erro ao excluir evento.');
+    console.error(error);
+    toast.error('Erro ao excluir evento.');
+  }
+};
+
+// Mapeamento de Cores para o BaseBadge
+const getBadgeVariant = (tipo: string) => {
+  // Ajuste conforme os nomes que vêm do seu backend
+  switch (tipo?.toUpperCase()) {
+    case 'REUNIAO': 
+    case 'REUNIÃO': return 'info';       // Azul
+    
+    case 'TREINAMENTO': return 'neutral'; // Cinza/Roxo
+    
+    case 'FERIADO': return 'success';     // Verde
+    
+    case 'ANIVERSARIO':
+    case 'ANIVERSÁRIO': return 'warning'; // Amarelo
+    
+    default: return 'neutral';
   }
 };
 

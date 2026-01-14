@@ -1,111 +1,117 @@
 <template>
   <div>
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-      <div>
-        <h2 class="text-2xl font-bold text-gray-800">Mural de Avisos</h2>
-        <p class="text-gray-600 text-sm">Gerencie os comunicados exibidos no portal do servidor.</p>
-      </div>
-      <router-link 
-        to="/admin/avisos/novo" 
-        class="bg-piaui-blue hover:bg-blue-800 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition shadow-sm"
-      >
-        <span>+</span> Publicar Aviso
-      </router-link>
-    </div>
+    <PageHeader 
+      title="Mural de Avisos" 
+      subtitle="Gerencie os comunicados exibidos no portal do servidor."
+    >
+      <template #actions>
+        <router-link 
+          to="/admin/avisos/novo" 
+          class="bg-piaui-blue hover:bg-blue-800 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition shadow-sm font-medium"
+        >
+          <span>+</span> Publicar Aviso
+        </router-link>
+      </template>
+    </PageHeader>
 
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-      
-      <div v-if="loading" class="p-12 text-center">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-piaui-blue"></div>
-      </div>
+    <BaseListLayout 
+      :loading="loading" 
+      :is-empty="avisos.length === 0"
+    >
+      <template #empty>
+        <div class="mb-2 text-4xl text-gray-300">
+          <BellIcon class="w-12 h-12 mx-auto" />
+        </div>
+        <p class="text-gray-500 text-lg">Nenhum aviso publicado.</p>
+      </template>
 
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
-              <th class="p-4 font-semibold">Título / Descrição</th>
-              <th class="p-4 font-semibold text-center">Prioridade</th>
-              <th class="p-4 font-semibold">Vigência</th>
-              <th class="p-4 font-semibold text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="aviso in avisos" :key="aviso.id" class="hover:bg-gray-50 transition">
-              
-              <td class="p-4 max-w-md">
-                <p class="font-bold text-gray-800 text-base mb-1">{{ aviso.titulo }}</p>
-                <p class="text-sm text-gray-500 line-clamp-2">{{ aviso.conteudo }}</p>
-              </td>
+      <BaseTable :columns="tableColumns" :items="avisos">
+        
+        <template #cell-titulo="{ item: aviso }">
+          <div class="max-w-md">
+            <p class="font-bold text-gray-800 text-base mb-1">{{ aviso.titulo }}</p>
+            <p class="text-sm text-gray-500 line-clamp-2">{{ aviso.conteudo }}</p>
+          </div>
+        </template>
 
-              <td class="p-4 text-center">
-                <span 
-                  :class="[
-                    'px-2 py-1 rounded text-xs font-bold uppercase tracking-wide',
-                    aviso.tipo === 'URGENTE' ? 'bg-red-100 text-red-700' : 
-                    aviso.tipo === 'ALERTA' ? 'bg-yellow-100 text-yellow-800' : 
-                    'bg-blue-100 text-blue-700'
-                  ]"
-                >
-                  {{ aviso.tipo }}
-                </span>
-              </td>
+        <template #cell-prioridade="{ item: aviso }">
+          <BaseBadge :variant="getBadgeVariant(aviso.tipo)">
+            {{ aviso.tipo }}
+          </BaseBadge>
+        </template>
 
-              <td class="p-4 text-sm text-gray-600">
-                <div class="flex flex-col gap-1">
-                  <span class="flex items-center gap-1">
-                    <span class="text-green-600 text-xs font-bold">INÍCIO:</span> 
-                    {{ formatarDataHora(aviso.dataInicio) }}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <span class="text-red-400 text-xs font-bold">FIM:</span> 
-                    {{ formatarDataHora(aviso.dataFim) }}
-                  </span>
-                </div>
-              </td>
+        <template #cell-vigencia="{ item: aviso }">
+          <div class="flex flex-col gap-1 text-sm text-gray-600">
+            <span class="flex items-center gap-1">
+              <span class="text-green-600 text-xs font-bold">INÍCIO:</span> 
+              {{ formatarDataHora(aviso.dataInicio) }}
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="text-red-400 text-xs font-bold">FIM:</span> 
+              {{ formatarDataHora(aviso.dataFim) }}
+            </span>
+          </div>
+        </template>
 
-              <td class="p-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                   <button 
-                    @click="excluirAviso(aviso.id)"
-                    class="text-gray-400 hover:text-piaui-red p-2 rounded-md hover:bg-red-50 transition" 
-                    title="Excluir Aviso"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </td>
-            </tr>
+        <template #cell-actions="{ item: aviso }">
+          <div class="flex justify-end gap-2">
+            <BaseActionBtn 
+              action="edit" 
+              @click="editar(aviso.id)" 
+            />
+            
+            <BaseActionBtn 
+              action="delete" 
+              @click="excluirAviso(aviso.id)" 
+            />
+          </div>
+        </template>
 
-            <tr v-if="avisos.length === 0">
-              <td colspan="4" class="p-10 text-center text-gray-500">
-                <div class="mb-2 text-4xl"><BellIcon class="w-12 h-12 mx-auto text-gray-300" /></div>
-                Nenhum aviso publicado.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      </BaseTable>
 
-      <div class="bg-gray-50 border-t border-gray-200 p-4 flex justify-between items-center" v-if="totalPages > 1">
-        <button @click="mudarPagina(pageAtual - 1)" :disabled="first" class="px-3 py-1 bg-white border rounded disabled:opacity-50">Anterior</button>
-        <span class="text-sm text-gray-600">Página {{ pageAtual + 1 }} de {{ totalPages }}</span>
-        <button @click="mudarPagina(pageAtual + 1)" :disabled="last" class="px-3 py-1 bg-white border rounded disabled:opacity-50">Próximo</button>
-      </div>
+      <template #pagination>
+        <BasePagination 
+          :page="pageAtual" 
+          :total-pages="totalPages" 
+          :first="first" 
+          :last="last"
+          @change-page="mudarPagina" 
+        />
+      </template>
 
-    </div>
+    </BaseListLayout>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import api from '../../../services/api';
 import type { AvisoDTO, Page } from '../../../types/aviso';
 import { formatarDataHora } from '../../../utils/formatters';
 import { BellIcon } from '@heroicons/vue/24/outline';
 import { toast } from 'vue-sonner';
 
+// Componentes Padronizados
+import PageHeader from '../../../components/common/PageHeader.vue';
+import BaseListLayout from '../../../components/layout/BaseListLayout.vue';
+import BaseTable from '../../../components/common/BaseTable.vue';
+import type { TableColumn } from '../../../types/table';
+import BaseBadge from '../../../components/common/BaseBadge.vue';
+import BasePagination from '../../../components/common/BasePagination.vue';
+import BaseActionBtn from '../../../components/common/BaseActionBtn.vue';
+
+const router = useRouter();
 const avisos = ref<AvisoDTO[]>([]);
 const loading = ref(true);
+
+// Configuração das Colunas
+const tableColumns: TableColumn[] = [
+  { key: 'titulo', label: 'Título / Descrição' },
+  { key: 'prioridade', label: 'Prioridade', align: 'center', width: '120px' },
+  { key: 'vigencia', label: 'Vigência', width: '220px' },
+  { key: 'actions', label: 'Ações', align: 'right', width: '100px' }
+];
 
 // Paginação
 const pageAtual = ref(0);
@@ -116,9 +122,7 @@ const last = ref(true);
 const fetchAvisos = async (page = 0) => {
   loading.value = true;
   try {
-    // Endpoint do backend (Verifique se é /avisos ou /avisos/admin)
     const { data } = await api.get<Page<AvisoDTO>>(`/avisos?page=${page}&size=10&sort=dataInicio,desc`);
-    
     avisos.value = data.content;
     pageAtual.value = data.number;
     totalPages.value = data.totalPages;
@@ -126,6 +130,7 @@ const fetchAvisos = async (page = 0) => {
     last.value = data.last;
   } catch (error) {
     console.error('Erro ao buscar avisos:', error);
+    toast.error('Erro ao carregar a lista de avisos.');
   } finally {
     loading.value = false;
   }
@@ -133,15 +138,30 @@ const fetchAvisos = async (page = 0) => {
 
 const mudarPagina = (p: number) => fetchAvisos(p);
 
+const editar = (id: number) => {
+  router.push(`/admin/avisos/${id}/editar`);
+};
+
 const excluirAviso = async (id: number) => {
   if(!confirm('Tem certeza que deseja remover este aviso permanentemente?')) return;
   
   try {
     await api.delete(`/avisos/${id}`);
     toast.success('Aviso excluído com sucesso!');
-    fetchAvisos(pageAtual.value); // Recarrega a lista
+    fetchAvisos(pageAtual.value);
   } catch (error) {
-    alert('Erro ao excluir aviso.');
+    console.error(error);
+    toast.error('Erro ao excluir aviso.');
+  }
+};
+
+// Helper para cores do Badge
+const getBadgeVariant = (tipo: string) => {
+  switch (tipo) {
+    case 'URGENTE': return 'danger';   // Vermelho
+    case 'ALERTA': return 'warning';   // Amarelo
+    case 'INFO': return 'info';        // Azul
+    default: return 'neutral';
   }
 };
 
