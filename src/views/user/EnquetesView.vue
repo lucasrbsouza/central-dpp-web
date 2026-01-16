@@ -1,16 +1,23 @@
 <template>
   <div>
-    <div class="mb-8 text-center">
-      <h2 class="text-3xl font-bold text-gray-800">Enquetes Ativas</h2>
-      <p class="text-gray-600 mt-2">Participe das decisões e pesquisas da secretaria.</p>
-    </div>
+    <PageHeader 
+      title="Enquetes Ativas" 
+      subtitle="Participe das decisões e pesquisas da secretaria."
+    />
 
     <div v-if="loading" class="flex justify-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-piaui-blue"></div>
+      <LoadingSpinner />
     </div>
 
+    <BaseEmptyState 
+      v-else-if="enquetes.length === 0"
+      title="Nenhuma enquete ativa"
+      description="No momento não há votações em andamento."
+    >
+      <template #icon>📊</template>
+    </BaseEmptyState>
+
     <div v-else class="space-y-8 max-w-4xl mx-auto">
-      
       <div 
         v-for="enquete in enquetes" 
         :key="enquete.id" 
@@ -23,7 +30,7 @@
               <p class="text-gray-600 text-sm mt-1">{{ enquete.descricao }}</p>
             </div>
             <div v-if="enquete.usuarioJaVotou" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase">
-              Votado ✅
+              Votado <CheckIcon class="w-4 h-4 inline-block ml-1" />
             </div>
             <div v-else class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase">
               Aberta
@@ -85,12 +92,6 @@
             </div>
           </form>
         </div>
-
-      </div>
-
-      <div v-if="!loading && enquetes.length === 0" class="text-center py-12 text-gray-500 bg-white rounded-lg shadow">
-        <p class="text-xl">📊</p>
-        <p class="mt-2">Nenhuma enquete ativa no momento.</p>
       </div>
     </div>
   </div>
@@ -102,11 +103,15 @@ import api from '../../services/api';
 import type { EnqueteDTO, Page } from '../../types/enquete';
 import { formatarDataHora } from '../../utils/formatters';
 
+// Components
+import PageHeader from '../../components/common/PageHeader.vue';
+import LoadingSpinner from '../../components/common/LoadingSpinner.vue';
+import BaseEmptyState from '../../components/common/BaseEmptyState.vue';
+import { CheckIcon } from '@heroicons/vue/24/outline';
+import { toast } from 'vue-sonner';
+
 const enquetes = ref<EnqueteDTO[]>([]);
 const loading = ref(true);
-
-// Armazena as seleções temporárias do usuário antes de enviar
-// Chave: ID da Enquete -> Valor: Array de IDs das opções
 const selecoes = reactive<Record<number, number[]>>({});
 
 const fetch = async () => {
@@ -121,37 +126,23 @@ const fetch = async () => {
   }
 };
 
-// Lógica de Seleção Visual
 const selecionarOpcao = (enquete: EnqueteDTO, opcaoId: number, event: Event) => {
   const checked = (event.target as HTMLInputElement).checked;
-  
-  // Garantindo que temos um array válido
   const selecaoAtual = selecoes[enquete.id] || [];
   
   if (enquete.multiplaEscolha) {
     if (checked) {
-      // Adiciona se não estiver já selecionado
-      if (!selecaoAtual.includes(opcaoId)) {
-        selecoes[enquete.id] = [...selecaoAtual, opcaoId];
-      }
+      if (!selecaoAtual.includes(opcaoId)) selecoes[enquete.id] = [...selecaoAtual, opcaoId];
     } else {
-      // Remove da seleção
       selecoes[enquete.id] = selecaoAtual.filter(id => id !== opcaoId);
     }
   } else {
-    // Radio logic - sempre substitui a seleção atual
     selecoes[enquete.id] = checked ? [opcaoId] : [];
   }
 };
-const isSelecionada = (enqueteId: number, opcaoId: number) => {
-  return selecoes[enqueteId]?.includes(opcaoId);
-};
 
-const temSelecao = (enqueteId: number) => {
-  return selecoes[enqueteId] && selecoes[enqueteId].length > 0;
-};
-
-// Helpers de Visualização
+const isSelecionada = (enqueteId: number, opcaoId: number) => selecoes[enqueteId]?.includes(opcaoId);
+const temSelecao = (enqueteId: number) => selecoes[enqueteId] && selecoes[enqueteId].length > 0;
 const isExpirada = (dataFim: string) => new Date(dataFim) < new Date();
 
 const calcularPorcentagem = (votosOpcao: number, enquete: EnqueteDTO) => {
@@ -160,24 +151,17 @@ const calcularPorcentagem = (votosOpcao: number, enquete: EnqueteDTO) => {
   return Math.round((votosOpcao / total) * 100);
 };
 
-// Enviar Voto
 const votar = async (enquete: EnqueteDTO) => {
   const opcoesEscolhidas = selecoes[enquete.id];
   if (!opcoesEscolhidas || opcoesEscolhidas.length === 0) return;
-
   try {
-    await api.post(`/enquetes/${enquete.id}/votar`, {
-      opcoesIds: opcoesEscolhidas
-    });
-    
-    // Atualiza a lista para mostrar o resultado imediatamente
-    alert('Voto registrado com sucesso!');
-    await fetch(); // Recarrega para pegar os novos totais e status jaVotou
-    delete selecoes[enquete.id]; // Limpa seleção
-
+    await api.post(`/enquetes/${enquete.id}/votar`, { opcoesIds: opcoesEscolhidas });
+    toast.success('Voto registrado com sucesso!');
+    await fetch();
+    delete selecoes[enquete.id];
   } catch (error: any) {
     const msg = error.response?.data?.message || 'Erro ao votar.';
-    alert(msg);
+    toast.error(msg);
   }
 };
 

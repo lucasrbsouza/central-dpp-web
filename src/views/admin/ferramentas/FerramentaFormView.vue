@@ -45,24 +45,17 @@
         </label>
         
         <div class="grid grid-cols-4 gap-3">
-          <div class="col-span-1">
-            <BaseSelect 
-              v-model="protocolo" 
-              :options="['https://', 'http://']"
-              placeholder=""
-              class="font-mono text-sm"
-            />
-          </div>
-          
           <div class="col-span-3">
             <BaseInput 
-              v-model="linkSemProtocolo" 
-              placeholder="www.exemplo.pi.gov.br" 
+              v-model="linkInput" 
+              placeholder="www.exemplo.pi.gov.br ou https://exemplo.com"
               required 
             />
           </div>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Selecione o protocolo e digite o endereço.</p>
+        <p class="text-xs text-gray-500 mt-1">
+          Você pode colar com ou sem http/https. O sistema ajusta automaticamente.
+        </p>
       </div>
 
       <BaseCheckbox 
@@ -97,7 +90,6 @@ import { toast } from 'vue-sonner';
 import PageHeader from '../../../components/common/PageHeader.vue';
 import BaseFormLayout from '../../../components/layout/BaseFormLayout.vue';
 import BaseInput from '../../../components/common/BaseInput.vue';
-import BaseSelect from '../../../components/common/BaseSelect.vue';
 import BaseCheckbox from '../../../components/common/BaseCheckbox.vue';
 import BaseButton from '../../../components/common/BaseButton.vue';
 
@@ -113,32 +105,45 @@ const form = ref<FerramentaForm>({
   ativo: true
 });
 
-// Lógica local para separar protocolo do domínio
-const linkSemProtocolo = ref('');
-const protocolo = ref('https://');
+// Input livre do usuário (com ou sem protocolo)
+const linkInput = ref('');
 
-// Atualiza o link completo no form sempre que as partes mudam
-watch([linkSemProtocolo, protocolo], () => {
-  // Remove qualquer protocolo que o usuário tenha colado sem querer no input de texto
-  const limpo = linkSemProtocolo.value.replace(/^https?:\/\//, '');
-  form.value.link = `${protocolo.value}${limpo}`;
+/**
+ * Normaliza o link:
+ * - se não tiver http/https, adiciona https://
+ * - se já tiver, mantém
+ */
+watch(linkInput, () => {
+  let valor = linkInput.value.trim();
+
+  if (!valor) {
+    form.value.link = '';
+    return;
+  }
+
+  // Bloqueia esquemas perigosos
+  if (/^(javascript:|data:)/i.test(valor)) {
+    form.value.link = '';
+    return;
+  }
+
+  // Se não começar com http:// ou https://, adiciona https://
+  if (!/^https?:\/\//i.test(valor)) {
+    valor = `https://${valor}`;
+  }
+
+  form.value.link = valor;
 });
 
 onMounted(async () => {
   if (isEdicao.value) {
-    salvando.value = true; // Usa o loading do layout enquanto carrega
+    salvando.value = true;
     try {
       const { data } = await api.get(`/ferramentas/${route.params.id}`);
       form.value = data;
 
-      // Separa o link vindo do banco para preencher os campos
-      if (data.link.startsWith('https://')) {
-        protocolo.value = 'https://';
-      } else if (data.link.startsWith('http://')) {
-        protocolo.value = 'http://';
-      }
-      
-      linkSemProtocolo.value = data.link.replace(/^https?:\/\//, '');
+      // Preenche o input exatamente como veio do backend
+      linkInput.value = data.link || '';
     } catch (error) {
       console.error(error);
       toast.error('Erro ao carregar ferramenta.');

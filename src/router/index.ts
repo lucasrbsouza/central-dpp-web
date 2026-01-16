@@ -87,12 +87,12 @@ const adminRoutes = {
         {
             path: 'usuarios/novo',
             name: 'AdminUsuarioNovo',
-            component: () => import('../views/user/UserFormView.vue')
+            component: () => import('../views/admin/users/UserFormView.vue')
         },
         {
             path: 'usuarios/:id/editar',
             name: 'AdminUsuarioEditar',
-            component: () => import('../views/user/UserFormView.vue')
+            component: () => import('../views/admin/users/UserFormView.vue')
         },
 
         {

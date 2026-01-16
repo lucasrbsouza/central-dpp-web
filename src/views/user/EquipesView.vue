@@ -1,13 +1,21 @@
 <template>
   <div>
-    <div class="mb-8 text-center">
-      <h2 class="text-3xl font-bold text-gray-800">Estrutura Organizacional</h2>
-      <p class="text-gray-600 mt-2">Conheça os setores, lideranças e equipes da nossa secretaria.</p>
-    </div>
+    <PageHeader 
+      title="Estrutura Organizacional" 
+      subtitle="Conheça os setores, lideranças e equipes da nossa secretaria."
+    />
 
     <div v-if="loading" class="flex justify-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-piaui-blue"></div>
+      <LoadingSpinner />
     </div>
+
+    <BaseEmptyState 
+      v-else-if="equipes.length === 0"
+      title="Nenhuma equipe cadastrada"
+      description="A estrutura organizacional ainda não foi definida."
+    >
+      <template #icon><BuildingOffice2Icon class="w-6 h-6" /></template>
+    </BaseEmptyState>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       <div 
@@ -17,17 +25,17 @@
       >
         <div class="bg-gray-50 px-6 py-3 border-b border-gray-100 flex items-center justify-between">
           <span v-if="equipe.nomeEquipePai" class="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1">
-             ↳ Pertence a: {{ equipe.nomeEquipePai }}
+             <ArrowTurnDownRightIcon class="w-4 h-4 inline mr-1" /> Pertence a: {{ equipe.nomeEquipePai }}
           </span>
           <span v-else class="text-xs font-bold text-piaui-blue uppercase tracking-wide">
-            ★ Setor Principal
+            <StarIcon class="w-4 h-4 inline mr-1" /> Setor Principal
           </span>
         </div>
 
         <div class="p-6 flex-1 flex flex-col">
           <div class="flex items-start justify-between mb-4">
             <div class="w-12 h-12 bg-blue-50 text-piaui-blue rounded-lg flex items-center justify-center text-2xl">
-              🏢
+              <BuildingOffice2Icon class="w-6 h-6" />
             </div>
           </div>
 
@@ -52,7 +60,7 @@
           </div>
 
           <button @click="abrirDetalhesEquipe(equipe)" class="mt-6 w-full py-2 bg-white border border-piaui-blue text-piaui-blue rounded-lg hover:bg-piaui-blue hover:text-white transition font-medium flex items-center justify-center gap-2">
-            <span>👥</span> Ver Integrantes
+            <span><UsersIcon class="w-4 h-4" /></span> Ver Integrantes
           </button>
         </div>
       </div>
@@ -71,14 +79,17 @@
 
         <div class="p-6 overflow-y-auto custom-scrollbar">
           <div v-if="loadingMembros" class="py-10 text-center">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-piaui-blue"></div>
-            <p class="text-sm text-gray-500 mt-2">Buscando equipe...</p>
+             <LoadingSpinner />
+             <p class="text-sm text-gray-500 mt-2">Buscando equipe...</p>
           </div>
 
-          <div v-else-if="membros.length === 0" class="py-10 text-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
-            <p class="text-2xl">🤷‍♂️</p>
-            <p class="text-gray-500 mt-2">Nenhum colaborador vinculado a esta equipe no momento.</p>
-          </div>
+          <BaseEmptyState 
+            v-else-if="membros.length === 0"
+            title="Nenhum colaborador"
+            description="Ninguém vinculado a esta equipe no momento."
+          >
+            <template #icon><FaceFrownIcon class="w-12 h-12 text-gray-300" /></template>
+          </BaseEmptyState>
 
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div 
@@ -99,10 +110,8 @@
               </div>
 
               <div v-if="membro.id === equipeSelecionada.idLider" class="ml-auto" title="Líder da Equipe">
-                <span class="text-lg">👑</span>
+                <span class="text-lg"><CheckBadgeIcon class="w-5 h-5 text-yellow-500" /></span>
               </div>
-              
-              <span class="absolute right-2 top-2 text-gray-300 opacity-0 group-hover:opacity-100 text-xs">ℹ️</span>
             </div>
           </div>
         </div>
@@ -128,18 +137,23 @@
 import { ref, onMounted } from 'vue';
 import api from '../../services/api';
 import type { EquipeDTO } from '../../types/equipe';
-// Importamos ColaboradorRespostaDTO para garantir compatibilidade com o modal de detalhes
 import type { ColaboradorRespostaDTO, Page } from '../../types/colaborador';
 import { getIniciais } from '../../utils/formatters';
 import ColaboradorDetalhesModal from '../../components/user/ColaboradorDetalhesModal.vue';
+
+// Components
+import PageHeader from '../../components/common/PageHeader.vue';
+import LoadingSpinner from '../../components/common/LoadingSpinner.vue';
+import BaseEmptyState from '../../components/common/BaseEmptyState.vue';
+import { ArrowTurnDownRightIcon, BuildingOffice2Icon, CheckBadgeIcon, FaceFrownIcon, StarIcon, UsersIcon } from '@heroicons/vue/24/outline';
 
 const equipes = ref<EquipeDTO[]>([]);
 const loading = ref(true);
 const loadingMembros = ref(false);
 
 const equipeSelecionada = ref<EquipeDTO | null>(null);
-const membros = ref<ColaboradorRespostaDTO[]>([]); // Tipado corretamente
-const membroSelecionado = ref<ColaboradorRespostaDTO | null>(null); // Controle do segundo modal
+const membros = ref<ColaboradorRespostaDTO[]>([]); 
+const membroSelecionado = ref<ColaboradorRespostaDTO | null>(null);
 
 onMounted(async () => {
   try {
@@ -158,7 +172,6 @@ const abrirDetalhesEquipe = async (equipe: EquipeDTO) => {
   loadingMembros.value = true;
   
   try {
-    // Usamos ColaboradorRespostaDTO aqui também
     const { data } = await api.get<Page<ColaboradorRespostaDTO>>(`/colaboradores?equipeId=${equipe.id}&size=100`);
     membros.value = data.content;
   } catch (error) {

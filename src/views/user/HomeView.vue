@@ -2,7 +2,7 @@
   <div>
     <div class="mb-8">
       <h2 class="text-2xl font-bold text-gray-800">
-        Olá, <span class="text-piaui-blue">{{ primeiroNome }}</span>! 👋
+        Olá, <span class="text-piaui-blue">{{ primeiroNome }}</span>! <PhHandWaving class="inline-block w-8 h-9" />
       </h2>
       <p class="text-gray-600 mt-1">Aqui está o resumo da sua semana na DPP.</p>
     </div>
@@ -15,7 +15,7 @@
       
       <section class="lg:col-span-2 space-y-6">
         <h3 class="text-xl font-bold text-gray-800 flex items-center border-b pb-2">
-          <span class="mr-2">📢</span> Mural de Avisos
+          <span class="mr-2"><BellAlertIcon class="w-5 h-5" /></span> Mural de Avisos
         </h3>
 
         <div v-if="dashboardData?.avisosVigentes.length === 0" class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center text-gray-500">
@@ -53,7 +53,7 @@
         
         <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-piaui-green">
           <h3 class="font-bold text-lg text-gray-800 mb-4 flex items-center">
-            <span class="mr-2">📅</span> Agenda da Semana
+            <span class="mr-2"><CalendarDateRangeIcon class="w-5 h-5" /></span> Agenda da Semana
           </h3>
           
           <ul class="space-y-4">
@@ -75,7 +75,7 @@
 
         <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-piaui-yellow">
           <h3 class="font-bold text-lg text-gray-800 mb-4 flex items-center">
-            <span class="mr-2">🎉</span> Aniversariantes do Mês
+            <span class="mr-2"><PhConfetti :size="20"/></span> Aniversariantes do Mês
           </h3>
           
           <ul class="space-y-3">
@@ -104,8 +104,9 @@ import { ref, onMounted, computed } from 'vue';
 import api from '../../services/api';
 import { useAuthStore } from '../../stores/auth';
 import type { DashboardData } from '../../types/dashboard';
-// IMPORTANTE: Importar os novos formatadores
 import { formatarDataHora, formatarDataSimples, formatarDiaMes, formatarHora } from '../../utils/formatters';
+import { PhConfetti, PhHandWaving } from '@phosphor-icons/vue';
+import { BellAlertIcon, CalendarDateRangeIcon } from '@heroicons/vue/24/outline';
 
 const authStore = useAuthStore();
 const dashboardData = ref<DashboardData | null>(null);

@@ -1,6 +1,6 @@
 <template>
   <RouterView />
-  <Toaster position="top-right" />
+  <Toaster :closeButton="true" closeButtonPosition="top-left" position="top-right" richColors :expand="false" />
 </template>
 
 <script setup lang="ts">

@@ -11,7 +11,7 @@
         class="text-sm text-blue-600 hover:underline flex items-center gap-1"
         :disabled="loading"
       >
-        🔄 Atualizar
+        <ArrowPathIcon class="w-4 h-4" /> Atualizar
       </button>
     </div>
 
@@ -111,6 +111,7 @@ import listPlugin from '@fullcalendar/list';
 import multiMonthPlugin from '@fullcalendar/multimonth';
 import interactionPlugin from '@fullcalendar/interaction';
 import ptBrLocale from '@fullcalendar/core/locales/pt-br';
+import { ArrowPathIcon } from '@heroicons/vue/24/outline';
 
 // Store
 const store = useAuxiliaresStore();

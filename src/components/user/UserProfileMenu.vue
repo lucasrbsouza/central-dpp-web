@@ -3,14 +3,20 @@
   <div class="hidden md:flex items-center gap-3">
     <div class="h-8 w-px bg-blue-700 mx-2"></div>
 
-    <router-link to="/perfil" class="text-right hover:opacity-80 transition group">
-      <p class="text-white text-sm font-semibold group-hover:underline">
-        {{ nome }}
-      </p>
-      <p class="text-blue-300 text-xs">{{ cargo }}</p>
-      <p class="text-blue-300 text-xs">{{ email }}</p>
-    </router-link>
+<router-link to="/perfil" class="flex items-center gap-2 text-right hover:opacity-80 transition group">
 
+
+  <div class="leading-tight">
+    <p class="text-white text-sm font-semibold group-hover:underline">
+      {{ nome }}
+    </p>
+    <p class="text-blue-300 text-xs">{{ cargo }}</p>
+    <p class="text-blue-300 text-xs">{{ email }}</p>
+  </div>
+    <UserCircleIcon
+    class="w-8 h-8 text-white group-hover:text-piaui-yellow transition shrink-0"
+  />
+</router-link>
     <button
       @click="$emit('logout')"
       class="bg-blue-800 hover:bg-piaui-red text-white p-2 rounded transition ml-2"
@@ -37,6 +43,8 @@
 </template>
 
 <script setup lang="ts">
+import { UserCircleIcon } from '@heroicons/vue/24/outline';
+
 defineProps<{
   nome: string;
   nomeCurto: string;

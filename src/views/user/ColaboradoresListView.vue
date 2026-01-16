@@ -1,30 +1,32 @@
 <template>
   <div>
-    <div class="mb-8 text-center">
-      <h2 class="text-3xl font-bold text-gray-800">Diretório de Colaboradores</h2>
-      <p class="text-gray-600 mt-1">Encontre contatos e veja quem faz parte da nossa equipe.</p>
-    </div>
+    <PageHeader 
+      title="Diretório de Colaboradores" 
+      subtitle="Encontre contatos e veja quem faz parte da nossa equipe."
+    />
 
-    <div class="max-w-xl mx-auto mb-10 relative">
-      <input 
-        v-model="termoBusca" 
-        @keyup.enter="pesquisar"
-        type="text" 
-        placeholder="Buscar por nome, cargo ou matrícula..." 
-        class="w-full pl-12 pr-12 py-3 rounded-full border border-gray-300 shadow-sm focus:ring-2 focus:ring-piaui-blue outline-none transition"
-      >
-      <span class="absolute left-4 top-3.5 text-gray-400 text-xl">🔍</span>
-      <button v-if="termoBusca" @click="limparBusca" class="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600">✕</button>
+    <div class="max-w-xl mx-auto mb-10">
+      <BaseSearchInput 
+        v-model="termoBusca"
+        placeholder="Buscar por nome, cargo ou matrícula..."
+        @search="pesquisar"
+      />
     </div>
 
     <div v-if="loading" class="flex justify-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-piaui-blue"></div>
+      <LoadingSpinner />
     </div>
 
-    <div v-else-if="colaboradores.length === 0" class="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
-      <p class="text-4xl mb-2">🤷‍♂️</p>
-      <p class="text-gray-500">Nenhum colaborador encontrado.</p>
-    </div>
+    <BaseEmptyState 
+      v-else-if="colaboradores.length === 0"
+      title="Nenhum colaborador encontrado"
+      description="Tente ajustar sua busca ou limpar os filtros."
+    >
+      <template #icon><FaceFrownIcon class="w-12 h-12 text-gray-300" /></template>
+      <template #action>
+        <button @click="limparBusca" class="text-piaui-blue underline font-bold">Limpar filtros</button>
+      </template>
+    </BaseEmptyState>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <div 
@@ -49,10 +51,14 @@
       </div>
     </div>
 
-    <div v-if="totalPages > 1 && !loading" class="flex justify-center mt-10 gap-2">
-      <button @click="mudarPagina(pageAtual - 1)" :disabled="first" class="px-4 py-2 bg-white border rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
-      <span class="px-4 py-2 text-gray-600">Página <strong>{{ pageAtual + 1 }}</strong> de <strong>{{ totalPages }}</strong></span>
-      <button @click="mudarPagina(pageAtual + 1)" :disabled="last" class="px-4 py-2 bg-white border rounded-md text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Próximo</button>
+    <div v-if="totalPages > 1 && !loading" class="mt-10 flex justify-center">
+      <BasePagination 
+        :page="pageAtual" 
+        :totalPages="totalPages"
+        :first="first"
+        :last="last"
+        @change-page="mudarPagina"
+      />
     </div>
 
     <ColaboradorDetalhesModal 
@@ -60,7 +66,6 @@
       :colaborador="selecionado" 
       @close="selecionado = null" 
     />
-
   </div>
 </template>
 
@@ -69,8 +74,15 @@ import { ref, onMounted, watch } from 'vue';
 import api from '../../services/api';
 import type { ColaboradorRespostaDTO, Page } from '../../types/colaborador';
 import { getIniciais } from '../../utils/formatters';
-import ColaboradorDetalhesModal from '../../components/user/ColaboradorDetalhesModal.vue';
 
+// Componentes
+import ColaboradorDetalhesModal from '../../components/user/ColaboradorDetalhesModal.vue';
+import PageHeader from '../../components/common/PageHeader.vue';
+import BaseEmptyState from '../../components/common/BaseEmptyState.vue';
+import BaseSearchInput from '../../components/common/BaseSearchInput.vue';
+import LoadingSpinner from '../../components/common/LoadingSpinner.vue';
+import BasePagination from '../../components/common/BasePagination.vue'; 
+import { FaceFrownIcon } from '@heroicons/vue/24/outline';
 
 const colaboradores = ref<ColaboradorRespostaDTO[]>([]);
 const loading = ref(true);
@@ -84,11 +96,11 @@ const first = ref(true);
 const last = ref(true);
 
 let timeout: ReturnType<typeof setTimeout>;
+
 watch(termoBusca, () => {
   clearTimeout(timeout);
   timeout = setTimeout(() => {
-    pageAtual.value = 0;
-    fetchColaboradores();
+    pesquisar();
   }, 500);
 });
 
@@ -110,10 +122,8 @@ const fetchColaboradores = async () => {
 };
 
 const mudarPagina = (novaPagina: number) => {
-  if (novaPagina >= 0 && novaPagina < totalPages.value) {
-    pageAtual.value = novaPagina;
-    fetchColaboradores();
-  }
+  pageAtual.value = novaPagina;
+  fetchColaboradores();
 };
 const pesquisar = () => { pageAtual.value = 0; fetchColaboradores(); };
 const limparBusca = () => { termoBusca.value = ''; };

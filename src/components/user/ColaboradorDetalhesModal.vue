@@ -41,7 +41,7 @@
 
         <div class="space-y-3 pt-2">
           <div class="flex items-center gap-3 text-sm">
-            <span class="w-6 text-center text-xl">📧</span>
+            <span class="w-6 text-center text-xl"><EnvelopeIcon class="w-4 h-4" /></span>
             <span v-if="colaborador.email" class="text-gray-700 font-medium truncate" :title="colaborador.email">
               {{ colaborador.email }}
             </span>
@@ -49,13 +49,13 @@
           </div>
 
           <div class="flex items-center gap-3 text-sm">
-            <span class="w-6 text-center text-xl">📞</span>
+            <span class="w-6 text-center text-xl"><PhoneIcon class="w-4 h-4" /></span>
             <span v-if="colaborador.telefone" class="text-gray-700 font-medium">{{ colaborador.telefone }}</span>
             <span v-else class="text-gray-400 italic">Telefone não informado</span>
           </div>
           
           <div class="flex items-center gap-3 text-sm">
-            <span class="w-6 text-center text-xl">🎂</span>
+            <span class="w-6 text-center text-xl"><CakeIcon class="w-4 h-4" /></span>
             <span v-if="colaborador.dataDeNascimento" class="text-gray-700 font-medium">{{ formatarData(colaborador.dataDeNascimento) }}</span>
             <span v-else class="text-gray-400 italic">Data não informada</span>
           </div>
@@ -80,6 +80,7 @@ import { ref, onUnmounted, watch } from 'vue';
 import api from '../../services/api';
 import type { ColaboradorRespostaDTO } from '../../types/colaborador';
 import { getIniciais, formatarData } from '../../utils/formatters'; 
+import { CakeIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps<{
   colaborador: ColaboradorRespostaDTO;

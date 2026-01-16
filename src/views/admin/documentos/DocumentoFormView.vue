@@ -112,7 +112,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../../services/api';
 import uploadApi from '../../../services/uploadApi';
 import EquipeService from '../../../services/EquipeService';
 import { ArrowLeftIcon, DocumentArrowUpIcon, LinkIcon } from '@heroicons/vue/24/outline';

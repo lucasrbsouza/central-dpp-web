@@ -6,14 +6,13 @@
     </div>
 
     <div v-if="loading" class="flex justify-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-piaui-blue"></div>
+      <LoadingSpinner />
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
       <div class="md:col-span-1">
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden text-center p-6">
-
           <div class="relative w-40 h-40 mx-auto mb-4 group">
             <div
               class="w-full h-full rounded-full border-4 border-gray-100 overflow-hidden shadow-sm bg-gray-50 flex items-center justify-center">
@@ -31,7 +30,7 @@
 
             <div v-if="uploadingFoto"
               class="absolute inset-0 bg-white/80 rounded-full flex items-center justify-center">
-              <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-piaui-blue"></div>
+              <LoadingSpinner class="w-8 h-8" />
             </div>
           </div>
 
@@ -61,102 +60,126 @@
             <h3 class="text-lg font-bold text-gray-800">Dados Pessoais & Profissionais</h3>
             <button v-if="!editando" @click="editando = true"
               class="text-piaui-blue hover:text-blue-800 font-bold text-sm flex items-center gap-1">
-              ✏️ Editar Dados
+              <PencilSquareIcon class="w-4 h-4" /> Editar Dados
             </button>
           </div>
 
           <form @submit.prevent="salvar">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-              <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nome <span
-                    class="text-red-500">*</span></label>
-                <input v-model="form.nome" :disabled="!editando" type="text" required class="input-padrao">
-              </div>
+              <BaseInput 
+                v-model="form.nome"
+                label="Nome"
+                :disabled="!editando"
+                required
+              />
 
-              <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Sobrenome <span
-                    class="text-red-500">*</span></label>
-                <input v-model="form.sobrenome" :disabled="!editando" type="text" required class="input-padrao">
-              </div>
+              <BaseInput 
+                v-model="form.sobrenome"
+                label="Sobrenome"
+                :disabled="!editando"
+                required
+              />
 
-              <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Telefone / Celular <span
-                    class="text-red-500">*</span></label>
-                <input v-model="form.telefone" :disabled="!editando" type="text" minlength="8"
-                  placeholder="(99) 99999-9999" class="input-padrao">
-              </div>
+              <BaseInput 
+                v-model="form.telefone"
+                label="Telefone / Celular"
+                :disabled="!editando"
+                required
+                placeholder="(99) 99999-9999"
+                minlength="8"
+              />
 
-              <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Data de Nascimento <span
-                    class="text-red-500">*</span></label>
-                <input v-model="form.dataDeNascimento" :disabled="!editando" type="date" required class="input-padrao">
-              </div>
+              <BaseInput 
+                v-model="form.dataDeNascimento"
+                label="Data de Nascimento"
+                type="date"
+                :disabled="!editando"
+                required
+              />
 
-              <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Gênero <span
-                    class="text-red-500">*</span></label>
-                <select v-model="form.genero" :disabled="!editando" class="input-padrao bg-white">
-                  <option value="MASCULINO">Masculino</option>
-                  <option value="FEMININO">Feminino</option>
-                  <option value="OUTRO">Outro</option>
-                </select>
-              </div>
+              <BaseSelect
+                v-model="form.genero"
+                label="Gênero"
+                :options="[
+                  { label: 'Masculino', value: 'MASCULINO' },
+                  { label: 'Feminino', value: 'FEMININO' },
+                  { label: 'Outro', value: 'OUTRO' }
+                ]"
+                :disabled="!editando"
+                required
+              />
 
-              <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Escolaridade</label>
-                <select v-model="form.escolaridade" :disabled="!editando" class="input-padrao bg-white">
-                  <option value="">Selecione...</option>
-                  <option v-for="esc in store.escolaridadesOptions" :key="esc.id" :value="esc.label">
-                    {{ esc.label }}
-                  </option>
-                </select>
+              <BaseSelect
+                v-model="form.escolaridade"
+                label="Escolaridade"
+                :options="store.escolaridadesOptions"
+                :disabled="!editando"
+                optionLabel="label"
+                optionValue="label"
+              />
+
+              <div class="sm:col-span-1">
+                <BaseSelect
+                  v-model="form.cargo"
+                  label="Cargo / Função"
+                  :options="store.cargosOptions"
+                  :disabled="!editando"
+                  required
+                  optionLabel="label"
+                  optionValue="label"
+                />
               </div>
 
               <div class="sm:col-span-1">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cargo / Função <span
-                    class="text-red-500">*</span></label>
-                <select v-model="form.cargo" :disabled="!editando" class="input-padrao bg-white">
-                  <option value="">Selecione...</option>
-                  <option v-for="cargo in store.cargosOptions" :key="cargo.id" :value="cargo.label">
-                    {{ cargo.label }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="sm:col-span-1">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Data de Entrada no Setor</label>
-                <input v-model="form.dataEntradaSetor" :disabled="!editando" type="date" class="input-padrao">
+                <BaseInput 
+                  v-model="form.dataEntradaSetor"
+                  label="Data de Entrada no Setor"
+                  type="date"
+                  :disabled="!editando"
+                />
               </div>
 
               <div class="sm:col-span-2">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Formação Acadêmica (Curso)</label>
-                <select v-model="form.formacao" :disabled="!editando" class="input-padrao bg-white">
-                  <option value="">Selecione a área...</option>
-                  <option v-for="formacao in store.formacoesOptions" :key="formacao.id" :value="formacao.label">
-                    {{ formacao.label }}
-                  </option>
-                </select>
+                <BaseSelect
+                  v-model="form.formacao"
+                  label="Formação Acadêmica (Curso)"
+                  :options="store.formacoesOptions"
+                  :disabled="!editando"
+                  placeholder="Selecione a área..."
+                  optionLabel="label"
+                  optionValue="label"
+                />
               </div>
 
               <div class="sm:col-span-2">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Principais Atribuições</label>
-                <textarea v-model="form.atribuicao" :disabled="!editando" rows="3"
-                  class="input-padrao resize-none"></textarea>
+                <BaseTextarea 
+                  v-model="form.atribuicao"
+                  label="Principais Atribuições"
+                  :disabled="!editando"
+                  rows="3"
+                />
               </div>
             </div>
 
             <div v-if="editando"
               class="mt-8 flex items-center justify-end gap-3 pt-4 border-t border-gray-100 animate-fade-in">
-              <button type="button" @click="cancelarEdicao"
-                class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition">
+              
+              <BaseButton 
+                variant="secondary" 
+                @click="cancelarEdicao"
+              >
                 Cancelar
-              </button>
-              <button type="submit" :disabled="salvando"
-                class="px-6 py-2 bg-piaui-blue text-white rounded-md hover:bg-blue-800 transition shadow-lg flex items-center gap-2 disabled:opacity-50">
-                <span v-if="salvando" class="animate-spin">⚪</span>
-                {{ salvando ? 'Salvando...' : 'Salvar Alterações' }}
-              </button>
+              </BaseButton>
+
+              <BaseButton 
+                type="submit" 
+                :loading="salvando"
+                :disabled="salvando"
+                variant="primary"
+              >
+                Salvar Alterações
+              </BaseButton>
             </div>
           </form>
         </div>
@@ -170,11 +193,19 @@ import { ref, onMounted } from 'vue';
 import api from '../../services/api';
 import type { ColaboradorPerfil, AtualizarPerfilForm } from '../../types/colaborador';
 import { useAuthStore } from '../../stores/auth';
-import { useAuxiliaresStore } from '../../stores/auxiliares'; // Import da Store Nova
+import { useAuxiliaresStore } from '../../stores/auxiliares'; 
 import ColaboradorService from '../../services/ColaboradorService';
 
+// Componentes Base
+import BaseInput from '../../components/common/BaseInput.vue';
+import BaseSelect from '../../components/common/BaseSelect.vue';
+import BaseTextarea from '../../components/common/BaseTextarea.vue';
+import BaseButton from '../../components/common/BaseButton.vue';
+import LoadingSpinner from '../../components/common/LoadingSpinner.vue';
+import { PencilSquareIcon } from '@heroicons/vue/24/outline';
+
 const authStore = useAuthStore();
-const store = useAuxiliaresStore(); // Instância da Store
+const store = useAuxiliaresStore(); 
 
 const loading = ref(true);
 const salvando = ref(false);
@@ -198,7 +229,6 @@ const form = ref<AtualizarPerfilForm>({
 });
 
 onMounted(async () => {
-  // Carrega listas auxiliares (Cargos, Formações, etc) + Perfil
   await Promise.all([
     store.buscarDadosSeNecessario(),
     carregarPerfil()
@@ -211,14 +241,13 @@ const carregarPerfil = async () => {
     const { data } = await ColaboradorService.buscarMeuPerfil();
     perfil.value = data;
 
-    // Mapear dados para o form
     form.value = {
       nome: data.nome,
       sobrenome: data.sobrenome,
       genero: data.genero as any,
       dataDeNascimento: data.dataDeNascimento,
       telefone: data.telefone || '',
-      cargo: data.cargo || '', // Binding com o valor string do select
+      cargo: data.cargo || '', 
       escolaridade: data.escolaridade || '',
       formacao: data.formacao || '',
       atribuicao: data.atribuicao || '',
@@ -249,17 +278,13 @@ const carregarFoto = async (id: number) => {
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;
 
-  // 1. Verificações iniciais
   if (!target.files || target.files.length === 0 || !perfil.value) return;
 
   const arquivo = target.files[0];
-
-  // 2. CORREÇÃO: Verificação explícita para o TypeScript
   if (!arquivo) return;
 
-  // 3. Validação de tamanho
   if (arquivo.size > 10 * 1024 * 1024) {
-    alert('A imagem deve ter no máximo 2MB.');
+    alert('A imagem deve ter no máximo 10MB.');
     target.value = '';
     return;
   }
@@ -282,7 +307,7 @@ const salvar = async () => {
   try {
     const { data } = await ColaboradorService.atualizarMeuPerfil(form.value);
 
-    perfil.value = data; // Atualiza visualização estática
+    perfil.value = data; 
     editando.value = false;
     alert('Perfil atualizado com sucesso!');
     authStore.fetchUserProfile();
@@ -323,11 +348,6 @@ const formatarData = (data: string | undefined) => {
 </script>
 
 <style scoped>
-/* Estilo reutilizado para inputs e selects para manter consistência */
-.input-padrao {
-  @apply w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-piaui-blue outline-none disabled:bg-gray-50 disabled:text-gray-600;
-}
-
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }

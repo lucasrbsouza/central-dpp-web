@@ -1,12 +1,12 @@
 <template>
   <div>
-    <div class="mb-8 text-center">
-      <h2 class="text-3xl font-bold text-gray-800">Ferramentas & Sistemas</h2>
-      <p class="text-gray-600 mt-2">Acesso rápido aos principais links externos da secretaria.</p>
-    </div>
+    <PageHeader 
+      title="Ferramentas & Sistemas" 
+      subtitle="Acesso rápido aos principais links externos da secretaria."
+    />
 
     <div v-if="loading" class="flex justify-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-piaui-blue"></div>
+      <LoadingSpinner />
     </div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -19,7 +19,7 @@
       >
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-2xl group-hover:bg-piaui-blue group-hover:text-white transition">
-            🔗
+            <PhLink :size="32"/>
           </div>
           <span class="text-gray-400 text-sm">Externo ↗</span>
         </div>
@@ -33,10 +33,13 @@
       </a>
     </div>
 
-    <div v-if="!loading && ferramentas.length === 0" class="text-center py-12 text-gray-500 bg-white rounded-lg shadow">
-      <p class="text-xl">🛠️</p>
-      <p class="mt-2">Nenhuma ferramenta disponível no momento.</p>
-    </div>
+    <BaseEmptyState 
+      v-if="!loading && ferramentas.length === 0"
+      title="Nenhuma ferramenta disponível"
+      description="No momento não há links externos cadastrados."
+    >
+      <template #icon>🛠️</template>
+    </BaseEmptyState>
   </div>
 </template>
 
@@ -44,16 +47,18 @@
 import { ref, onMounted } from 'vue';
 import api from '../../services/api';
 import type { FerramentaDTO, Page } from '../../types/ferramenta';
+// Imports dos componentes
+import PageHeader from '../../components/common/PageHeader.vue';
+import LoadingSpinner from '../../components/common/LoadingSpinner.vue'; // Assumindo que existe
+import BaseEmptyState from '../../components/common/BaseEmptyState.vue';
+import { PhLink } from '@phosphor-icons/vue';
 
 const ferramentas = ref<FerramentaDTO[]>([]);
 const loading = ref(true);
 
 onMounted(async () => {
   try {
-    // Busca apenas as ferramentas ATIVAS (podes ter um endpoint específico ou filtrar no front se a paginação permitir)
-    // Supondo que o endpoint padrão traga tudo, num cenário real idealmente terias /ferramentas/publicas
     const { data } = await api.get<Page<FerramentaDTO>>('/ferramentas?size=50&sort=titulo,asc');
-    // Filtra no front por garantia se a API retornar inativos
     ferramentas.value = data.content.filter(f => f.ativo);
   } catch (error) {
     console.error('Erro ao carregar ferramentas', error);

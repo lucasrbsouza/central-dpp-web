@@ -1,138 +1,143 @@
 <template>
   <div>
-    <div class="mb-8 text-center">
-      <h2 class="text-3xl font-bold text-gray-800">Documentos Oficiais</h2>
-      <p class="text-gray-600 mt-2">Repositório de arquivos, manuais e links importantes da secretaria.</p>
-    </div>
+    <PageHeader 
+      title="Documentos Oficiais" 
+      subtitle="Modelos, manuais e arquivos para download."
+    />
 
-    <div class="max-w-md mx-auto mb-10 relative">
-      <input 
-        v-model="filtro" 
-        type="text" 
-        placeholder="Buscar documento por título..." 
-        class="w-full pl-10 pr-4 py-3 rounded-full border border-gray-300 shadow-sm focus:ring-2 focus:ring-piaui-blue outline-none"
-      >
-      <span class="absolute left-4 top-3.5 text-gray-400">🔍</span>
+    <div class="max-w-xl mx-auto mb-8">
+      <BaseSearchInput 
+        v-model="termo" 
+        placeholder="Pesquisar documento..." 
+        @search="fetch"
+      />
     </div>
 
     <div v-if="loading" class="flex justify-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-piaui-blue"></div>
+      <LoadingSpinner />
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
+    <BaseEmptyState 
+      v-else-if="documentos.length === 0"
+      title="Nenhum documento disponível"
+      description="Tente buscar por outros termos."
+    >
+      <template #icon><DocumentIcon class="w-8 h-8" /></template>
+      <template #action>
+         <button v-if="termo" @click="limparBusca" class="text-piaui-blue underline font-bold">Ver todos</button>
+      </template>
+    </BaseEmptyState>
+
+    <div v-else class="space-y-3">
       <div 
-        v-for="doc in documentosFiltrados" 
-        :key="doc.id" 
-        class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 flex flex-col group overflow-hidden"
+        v-for="doc in documentos" 
+        :key="doc.id"
+        class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row items-start md:items-center gap-4 hover:border-blue-300 transition-colors"
       >
-        <div :class="['h-2 bg-gradient-to-r', doc.urlLink ? 'from-blue-400 to-blue-600' : 'from-orange-400 to-orange-600']"></div>
-        
-        <div class="p-6 flex-1 flex flex-col">
-          <div class="flex items-start justify-between mb-4">
-            <div :class="['w-12 h-12 rounded-lg flex items-center justify-center text-2xl mb-2', doc.urlLink ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600']">
-              {{ doc.urlLink ? '🔗' : '📄' }}
-            </div>
-            <span class="text-xs font-bold uppercase tracking-wider text-gray-400">
-              {{ doc.urlLink ? 'Link Externo' : 'Arquivo' }}
-            </span>
-          </div>
+        <div class="p-3 rounded-lg shrink-0" :class="doc.urlLink ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'">
+          <LinkIcon v-if="doc.urlLink" class="w-6 h-6" />
+          <DocumentTextIcon v-else class="w-6 h-6" />
+        </div>
 
-          <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-piaui-blue transition-colors">
-            {{ doc.titulo }}
-          </h3>
+        <div class="flex-1">
+          <div class="flex items-center gap-2">
+            <h3 class="font-bold text-gray-800">{{ doc.titulo }}</h3>
+            <span v-if="doc.urlLink" class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded uppercase font-bold">Link</span>
+            <span v-else class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded uppercase font-bold">Arquivo</span>
+          </div>
+          <p class="text-sm text-gray-600 mt-1">{{ doc.descricao || 'Sem descrição.' }}</p>
+        </div>
+
+        <div class="mt-2 md:mt-0">
+          <a 
+            v-if="doc.urlLink" 
+            :href="doc.urlLink" 
+            target="_blank"
+            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
+          >
+            Acessar <ArrowTopRightOnSquareIcon class="w-4 h-4" />
+          </a>
           
-          <p class="text-sm text-gray-600 mb-4 flex-1">
-            {{ doc.descricao || 'Sem descrição.' }}
-          </p>
-
-          <div class="mt-auto pt-4 border-t border-gray-50">
-            <a 
-              v-if="doc.urlLink"
-              :href="doc.urlLink" 
-              target="_blank"
-              class="flex items-center justify-center w-full py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 font-semibold transition"
-            >
-              Acessar Link ↗
-            </a>
-
-            <button 
-              v-else
-              @click="downloadArquivo(doc)"
-              :disabled="baixando === doc.id"
-              class="flex items-center justify-center w-full py-2 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 font-semibold transition disabled:opacity-50"
-            >
-              <span v-if="baixando === doc.id" class="animate-spin mr-2">⚪</span>
-              {{ baixando === doc.id ? 'Baixando...' : '⬇ Baixar Arquivo' }}
-            </button>
-          </div>
+          <button 
+            v-else 
+            @click="baixar(doc)"
+            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition"
+          >
+            Baixar <ArrowDownTrayIcon class="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
-
-    <div v-if="!loading && documentosFiltrados.length === 0" class="text-center py-16">
-      <div class="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">
-        📂
-      </div>
-      <h3 class="text-lg font-medium text-gray-900">Nenhum documento encontrado</h3>
-      <p class="text-gray-500 mt-1">Tente buscar por outro termo.</p>
-    </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import api from '../../services/api';
-import type { DocumentoDTO, Page } from '../../types/documento';
+import { toast } from 'vue-sonner';
+import { 
+  DocumentTextIcon, 
+  LinkIcon, 
+  ArrowDownTrayIcon, 
+  ArrowTopRightOnSquareIcon 
+} from '@heroicons/vue/24/outline';
 
-const documentos = ref<DocumentoDTO[]>([]);
+// Componentes
+import PageHeader from '../../components/common/PageHeader.vue';
+import LoadingSpinner from '../../components/common/LoadingSpinner.vue';
+import BaseEmptyState from '../../components/common/BaseEmptyState.vue';
+import BaseSearchInput from '../../components/common/BaseSearchInput.vue';
+
+const documentos = ref<any[]>([]);
 const loading = ref(true);
-const filtro = ref('');
-const baixando = ref<number | null>(null);
+const termo = ref('');
 
-// Computada para filtrar localmente (UX mais rápida)
-const documentosFiltrados = computed(() => {
-  if (!filtro.value) return documentos.value;
-  const termo = filtro.value.toLowerCase();
-  return documentos.value.filter(d => 
-    d.titulo.toLowerCase().includes(termo) || 
-    d.descricao?.toLowerCase().includes(termo)
-  );
+let timeout: ReturnType<typeof setTimeout>;
+
+// Opcional: Busca automática ao digitar (igual aos colaboradores)
+watch(termo, () => {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    fetch();
+  }, 500);
 });
 
-onMounted(async () => {
+const fetch = async () => {
+  loading.value = true;
   try {
-    // Busca os documentos (assumindo paginação grande para trazer "todos" ou paginar depois)
-    const { data } = await api.get<Page<DocumentoDTO>>('/documentos?size=50&sort=id,desc');
+    let url = `/documentos?page=0&size=20&sort=titulo,asc`;
+    if (termo.value) url += `&titulo=${termo.value}`;
+    const { data } = await api.get(url);
     documentos.value = data.content;
   } catch (error) {
-    console.error('Erro ao carregar documentos', error);
+    console.error(error);
   } finally {
     loading.value = false;
   }
-});
+};
 
-const downloadArquivo = async (doc: DocumentoDTO) => {
-  baixando.value = doc.id;
+const limparBusca = () => {
+  termo.value = '';
+};
+
+const baixar = async (doc: any) => {
+  const t = toast.loading('Baixando...');
   try {
-    const response = await api.get(`/documentos/${doc.id}/download`, {
-      responseType: 'blob'
-    });
-    
-    // Cria link invisível para download
+    const response = await api.get(`/documentos/${doc.id}/download`, { responseType: 'blob' });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${doc.titulo}.pdf`); // Tenta nome padrão
+    link.setAttribute('download', `${doc.titulo}.pdf`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    alert('Erro ao baixar arquivo. Verifique se ele ainda existe.');
-  } finally {
-    baixando.value = null;
+    toast.dismiss(t);
+    toast.success('Concluído!');
+  } catch (e) {
+    toast.dismiss(t);
+    toast.error('Erro no download.');
   }
 };
+
+onMounted(() => fetch());
 </script>
